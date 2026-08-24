@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEALTHNOTE — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#020817;
+    --navy-900:#01122E;
+    --navy-850:#011936;
+    --navy-800:#0A2946;
+    --blue-slate:#285466;
+    --teal-500:#35AFAC;
+    --mint-400:#73CDB8;
+    --mint-300:#7DD9C1;
+    --ivory-50:#FDFBF8;
+    --ivory-text:#F3E6CF;
+    --silver-300:#AFC4CC;
+    --slate-500:#5E748B;
+    --verified-blue:#256BC5;
+    --font-ui:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    --font-serif:'Cormorant Garamond',Georgia,serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:var(--font-ui);
+    background:#e7e2d8;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    padding:32px 12px 60px;
+    min-height:100vh;
+  }
+  .rig-label{
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:#6b6355;
+    font-weight:600;
+  }
+  .controls{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+    max-width:420px;
+    background:#fff;
+    border:1px solid #ddd6c8;
+    border-radius:14px;
+    padding:12px 16px;
+    font-size:12px;
+  }
+  .controls button{
+    font-family:var(--font-ui);
+    font-size:12px;
+    font-weight:600;
+    padding:7px 12px;
+    border-radius:20px;
+    border:1px solid #cfc6b4;
+    background:#faf8f2;
+    color:#3a352b;
+    cursor:pointer;
+  }
+  .controls button.active{
+    background:var(--navy-900);
+    color:var(--ivory-text);
+    border-color:var(--navy-900);
+  }
+  .controls .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
+  .controls .divider{width:1px;height:18px;background:#ddd6c8;}
+
+  /* ---- phone frame ---- */
+  .frame{
+    width:360px;
+    height:640px;
+    border-radius:38px;
+    background:#000;
+    padding:10px;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+    position:relative;
+  }
+  .screen{
+    width:100%;
+    height:100%;
+    border-radius:30px;
+    overflow:hidden;
+    position:relative;
+    display:none;
+  }
+  .screen.active{display:flex;flex-direction:column;}
+
+  /* ================= SCREEN 1: MAIN ================= */
+  #screen-main{
+    background:
+      radial-gradient(ellipse at 50% 38%, rgba(53,175,172,0.16), transparent 55%),
+      linear-gradient(180deg, var(--navy-900) 0%, var(--navy-950) 100%);
+    color:var(--ivory-text);
+    overflow-y:auto;
+    padding:34px 22px 22px;
+    align-items:center;
+    text-align:center;
+  }
+  .wordmark{
+    font-size:34px;
+    font-weight:800;
+    letter-spacing:.03em;
+    margin:0;
+    line-height:1;
+  }
+  .wordmark .health{color:var(--ivory-text);}
+  .wordmark .note{
+    background:linear-gradient(90deg, var(--mint-400), var(--teal-500));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .maker-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:10px;
+  }
+  .maker-line{width:22px;height:1px;background:var(--teal-500);opacity:.7;}
+  .maker-text{
+    font-size:10px;
+    letter-spacing:.28em;
+    color:var(--silver-300);
+    text-transform:uppercase;
+    font-weight:500;
+  }
+  .subtitle{
+    margin-top:16px;
+    font-size:13.5px;
+    color:var(--ivory-text);
+    opacity:.9;
+    max-width:240px;
+  }
+  .art-wrap{
+    margin:26px 0 22px;
+    width:150px;
+    height:150px;
+    position:relative;
+  }
+  .primary-btn{
+    width:100%;
+    max-width:280px;
+    background:linear-gradient(180deg, var(--mint-300), var(--mint-400));
+    color:var(--navy-950);
+    border:none;
+    border-radius:18px;
+    padding:16px 18px;
+    font-family:var(--font-ui);
+    font-size:15px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    cursor:pointer;
+    box-shadow:0 8px 20px rgba(115,205,184,.25);
+  }
+  .secondary-btn{
+    width:100%;
+    max-width:280px;
+    background:transparent;
+    color:var(--ivory-text);
+    border:1.5px solid var(--mint-400);
+    border-radius:18px;
+    padding:15px 18px;
+    font-family:var(--font-ui);
+    font-size:15px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    cursor:pointer;
+    margin-top:12px;
+  }
+  .secondary-btn:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+    border-color:var(--slate-500);
+    color:var(--slate-500);
+  }
+  .forgot-link{
+    margin-top:16px;
+    font-size:13px;
+    color:var(--mint-300);
+    text-decoration:underline;
+    background:none;
+    border:none;
+    font-family:var(--font-ui);
+    cursor:pointer;
+  }
+  .forgot-link:disabled{
+    color:var(--slate-500);
+    text-decoration:none;
+    cursor:not-allowed;
+  }
+  .disabled-note{
+    font-size:10.5px;
+    color:var(--slate-500);
+    margin-top:6px;
+  }
+  .privacy-line{
+    margin-top:20px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    color:var(--silver-300);
+  }
+
+  /* ================= SCREEN 2: DEDICATION ================= */
+  #screen-dedication{
+    background:
+      repeating-linear-gradient(180deg, rgba(255,255,255,.015) 0px, rgba(255,255,255,.015) 1px, transparent 1px, transparent 30px),
+      radial-gradient(ellipse at 30% 20%, rgba(20,40,60,.4), transparent 60%),
+      var(--navy-950);
+    color:var(--ivory-text);
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    cursor:pointer;
+    padding:30px;
+  }
+  .dedication-inner{
+    text-align:center;
+    animation:fadeIn 1.8s ease-out;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .dedication-inner{animation:none;}
+  }
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .dedication-text{
+    font-family:var(--font-serif);
+    font-size:26px;
+    line-height:1.35;
+    font-weight:500;
+    letter-spacing:.01em;
+  }
+  .dedication-text .brand{
+    display:block;
+    margin-top:4px;
+    letter-spacing:.06em;
+  }
+  .pulse-line{
+    position:absolute;
+    right:0;
+    top:44%;
+    width:70px;
+    height:40px;
+    opacity:.8;
+  }
+  .maker-mark-bottom{
+    position:absolute;
+    bottom:34px;
+    left:0;
+    right:0;
+    text-align:center;
+  }
+  .maker-mark-bottom .brandname{
+    font-size:13px;
+    letter-spacing:.3em;
+    font-weight:600;
+    color:var(--ivory-text);
+  }
+  .maker-mark-bottom .by{
+    font-size:9px;
+    letter-spacing:.28em;
+    color:var(--silver-300);
+    margin-top:4px;
+    text-transform:uppercase;
+  }
+  .tap-hint{
+    position:absolute;
+    bottom:10px;
+    left:0;right:0;
+    text-align:center;
+    font-size:10px;
+    color:var(--slate-500);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    opacity:0;
+    transition:opacity .4s ease;
+  }
+  .tap-hint.show{opacity:1;}
+
+  /* ================= SCREEN 3: DASHBOARD ================= */
+  #screen-dashboard{
+    background:var(--ivory-50);
+    color:var(--navy-900);
+    overflow-y:auto;
+    padding-bottom:78px;
+  }
+  .dash-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 18px 10px;
+  }
+  .dash-title{
+    font-size:19px;
+    font-weight:800;
+    color:var(--navy-900);
+    margin:0;
+  }
+  .lock-pill{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:rgba(115,205,184,.18);
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:10.5px;
+    font-weight:600;
+    color:var(--blue-slate);
+  }
+  .lock-pill .dot{
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--mint-400);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .hero-card{
+    margin:8px 16px 20px;
+    background:linear-gradient(135deg, var(--navy-850), var(--navy-800));
+    border-radius:26px;
+    padding:20px;
+    color:var(--ivory-50);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-shield{
+    width:34px;height:34px;
+    border-radius:10px;
+    background:rgba(115,205,184,.15);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:12px;
+  }
+  .hero-card h2{
+    font-size:18px;
+    margin:0 0 6px;
+    font-weight:700;
+  }
+  .hero-card p{
+    font-size:12px;
+    color:var(--silver-300);
+    margin:0 0 16px;
+    max-width:170px;
+    line-height:1.4;
+  }
+  .hero-btn{
+    background:linear-gradient(180deg, var(--mint-300), var(--mint-400));
+    color:var(--navy-950);
+    border:none;
+    border-radius:16px;
+    padding:10px 16px;
+    font-size:12.5px;
+    font-weight:700;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    cursor:pointer;
+  }
+  .hero-art{
+    position:absolute;
+    right:14px;
+    top:16px;
+    width:64px;
+    opacity:.9;
+  }
+  .section-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 16px 10px;
+  }
+  .section-row h3{
+    font-size:15px;
+    margin:0;
+    font-weight:700;
+    color:var(--navy-900);
+  }
+  .section-link{
+    font-size:12px;
+    color:var(--teal-500);
+    font-weight:600;
+    text-decoration:none;
+    display:flex;align-items:center;gap:2px;
+    background:none;border:none;cursor:pointer;
+    font-family:var(--font-ui);
+  }
+  .results-row{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding:0 16px 4px;
+    scrollbar-width:none;
+  }
+  .results-row::-webkit-scrollbar{display:none;}
+  .result-card{
+    flex:0 0 130px;
+    background:var(--navy-850);
+    border-radius:18px;
+    padding:14px;
+    color:var(--ivory-50);
+  }
+  .result-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .result-icon{
+    width:28px;height:28px;
+    border-radius:9px;
+    background:rgba(115,205,184,.2);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .verified-dot{
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--mint-400);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .result-label{font-size:11px;color:var(--silver-300);margin-bottom:2px;}
+  .result-value{font-size:16px;font-weight:800;margin-bottom:6px;}
+  .result-value span{font-size:11px;font-weight:500;color:var(--silver-300);}
+  .result-meta{font-size:9.5px;color:var(--slate-500);margin-bottom:6px;}
+  .result-source{
+    font-size:9.5px;color:var(--silver-300);
+    display:flex;align-items:center;gap:4px;margin-bottom:6px;
+  }
+  .result-trend{
+    font-size:9.5px;font-weight:600;color:var(--mint-300);
+    display:flex;align-items:center;gap:3px;
+  }
+  .capture-wrap{
+    display:flex;flex-direction:column;align-items:center;
+    margin:14px 0 20px;
+  }
+  .capture-btn{
+    width:60px;height:60px;
+    border-radius:50%;
+    background:linear-gradient(180deg, var(--teal-500), var(--blue-slate));
+    display:flex;align-items:center;justify-content:center;
+    border:none;
+    box-shadow:0 8px 18px rgba(53,175,172,.35);
+    cursor:pointer;
+  }
+  .capture-label{font-size:11px;font-weight:700;color:var(--navy-900);margin-top:6px;}
+  .timeline{padding:0 16px;}
+  .record-row{
+    display:flex;
+    gap:10px;
+  }
+  .record-rail{
+    display:flex;flex-direction:column;align-items:center;
+    padding-top:6px;
+  }
+  .record-dot{
+    width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:#e7f6f2;border:1.5px solid var(--mint-400);
+    flex-shrink:0;
+  }
+  .record-dot.blue{background:#e8f0fb;border-color:var(--verified-blue);}
+  .record-line{width:1.5px;flex:1;background:#e3ded2;margin:2px 0;}
+  .record-card{
+    flex:1;
+    background:#fff;
+    border-radius:16px;
+    padding:12px 14px;
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    box-shadow:0 1px 4px rgba(0,0,0,.04);
+  }
+  .record-title{font-size:13.5px;font-weight:700;color:var(--navy-900);}
+  .record-sub{font-size:11.5px;color:var(--slate-500);margin:2px 0;}
+  .record-date{font-size:10.5px;color:var(--slate-500);}
+  .verified-badge{
+    display:flex;align-items:center;gap:4px;
+    font-size:10px;font-weight:700;
+    color:var(--mint-400);
+    background:#e7f6f2;
+    padding:4px 8px;border-radius:10px;
+  }
+  .verified-badge.blue{color:var(--verified-blue);background:#e8f0fb;}
+  .status-stack{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+  .baseline-badge{font-size:9px;font-weight:800;letter-spacing:.06em;color:#7a5613;background:#fff3cf;padding:3px 7px;border-radius:9px;}
+  .unverified-badge{font-size:9px;font-weight:800;color:#8e4f19;background:#fff0df;padding:4px 8px;border-radius:10px;}
+  .vigilance-card{margin:0 16px 14px;padding:10px 12px;border-radius:14px;background:#fff8e9;border:1px solid #efd8a4;color:#5f5134;font-size:10px;line-height:1.45;}
+  .vigilance-card button{margin-top:7px;border:1px solid #b99448;background:#fff;color:#6c511a;border-radius:10px;padding:6px 9px;font:700 9px var(--font-ui);}
+  .badge-sub{font-size:9px;font-weight:500;color:var(--slate-500);display:block;text-align:right;margin-top:2px;}
+
+  .bottom-nav{
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:70px;
+    background:#fff;
+    border-top:1px solid #ece6d8;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    padding-bottom:6px;
+  }
+  .nav-item{
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-size:9.5px;
+    color:var(--slate-500);
+    font-weight:600;
+    background:none;border:none;cursor:pointer;
+    font-family:var(--font-ui);
+  }
+  .nav-item.active{color:var(--navy-900);}
+  .nav-item.active .nav-underline{width:16px;height:2px;background:var(--navy-900);border-radius:2px;margin-top:1px;}
+  .nav-fab{
+    width:44px;height:44px;border-radius:50%;
+    background:var(--navy-900);
+    display:flex;align-items:center;justify-content:center;
+    margin-top:-18px;
+    box-shadow:0 4px 10px rgba(0,0,0,.2);
+  }
+</style>
+</head>
+<body>
+
+<div class="rig-label">HEALTHNOTE prototype — real components, not screenshots</div>
+
+<div class="controls">
+  <div class="row">
+    <span style="font-weight:700;">Screen:</span>
+    <button id="btn-nav-dedication" onclick="goTo('dedication')">Dedication</button>
+    <button id="btn-nav-main" onclick="goTo('main')">Main</button>
+    <button id="btn-nav-dashboard" onclick="goTo('dashboard')">Dashboard</button>
+  </div>
+  <div class="divider"></div>
+  <div class="row">
+    <span style="font-weight:700;">Demo state:</span>
+    <button id="btn-noprofile" onclick="setProfile(false)">No profile</button>
+    <button id="btn-hasprofile" onclick="setProfile(true)">Profile exists</button>
+  </div>
+</div>
+
+<div class="frame">
+
+  <!-- ================= SCREEN: DEDICATION ================= -->
+  <div class="screen" id="screen-dedication" onclick="handleDedicationTap()">
+    <svg class="pulse-line" viewBox="0 0 70 40" fill="none">
+      <path d="M0 20 H22 L28 6 L34 34 L40 20 H70" stroke="#35AFAC" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+    </svg>
+    <div class="dedication-inner">
+      <p class="dedication-text">
+        Everything<br>listed here,<br>lives —
+        <span class="brand">HEALTHNOTE</span>
+      </p>
+    </div>
+    <div class="maker-mark-bottom">
+      <svg width="34" height="18" viewBox="0 0 34 18" style="margin-bottom:8px;">
+        <line x1="4" y1="2" x2="4" y2="16" stroke="#7DD9C1" stroke-width="1.2"/>
+        <line x1="10" y1="0" x2="10" y2="18" stroke="#7DD9C1" stroke-width="1.2"/>
+        <line x1="16" y1="3" x2="16" y2="15" stroke="#35AFAC" stroke-width="1.2"/>
+        <line x1="22" y1="1" x2="22" y2="17" stroke="#7DD9C1" stroke-width="1.2"/>
+        <line x1="28" y1="4" x2="28" y2="14" stroke="#7DD9C1" stroke-width="1.2"/>
+      </svg>
+      <div class="brandname">HEALTHNOTE</div>
+      <div class="by">by KELBRICTECH</div>
+    </div>
+    <div class="tap-hint" id="tap-hint">tap to continue</div>
+  </div>
+
+  <!-- ================= SCREEN: MAIN ================= -->
+  <div class="screen" id="screen-main">
+    <h1 class="wordmark"><span class="health">HEALTH</span><span class="note">NOTE</span></h1>
+    <div class="maker-row">
+      <div class="maker-line"></div>
+      <div class="maker-text">by KELBRICTECH</div>
+      <div class="maker-line"></div>
+    </div>
+    <p class="subtitle">Your personal health information tracker.</p>
+
+    <div class="art-wrap">
+      <svg viewBox="0 0 150 150" width="150" height="150">
+        <circle cx="75" cy="75" r="72" fill="none" stroke="#0A2946" stroke-width="1"/>
+        <!-- notebook -->
+        <g>
+          <rect x="38" y="24" width="62" height="92" rx="10" fill="#0A2946" stroke="#1c3a54" stroke-width="1"/>
+          <path d="M84 24 h16 v16 a10 10 0 0 1 -16 -16 z" fill="#73CDB8"/>
+          <g stroke="#0F3350" stroke-width="2">
+            <circle cx="32" cy="34" r="2.4" fill="#c7ccd0"/>
+            <circle cx="32" cy="48" r="2.4" fill="#c7ccd0"/>
+            <circle cx="32" cy="62" r="2.4" fill="#c7ccd0"/>
+            <circle cx="32" cy="76" r="2.4" fill="#c7ccd0"/>
+            <circle cx="32" cy="90" r="2.4" fill="#c7ccd0"/>
+            <circle cx="32" cy="104" r="2.4" fill="#c7ccd0"/>
+          </g>
+          <path d="M42 70 h12 l6 -14 l7 26 l6 -12 h15" fill="none" stroke="#7DD9C1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <!-- shield -->
+        <g transform="translate(84,84)">
+          <path d="M22 0 L44 8 V26 C44 42 30 52 22 56 C14 52 0 42 0 26 V8 Z" fill="#AFC4CC" stroke="#7f95a0" stroke-width="1"/>
+          <path d="M22 3 L41 10 V26 C41 40 29 49 22 53 C15 49 3 40 3 26 V10 Z" fill="#0A2946"/>
+          <circle cx="22" cy="26" r="9" fill="#73CDB8"/>
+          <rect x="18" y="24" width="8" height="7" rx="1.5" fill="#0A2946"/>
+          <path d="M19.5 24 v-3 a2.5 2.5 0 0 1 5 0 v3" fill="none" stroke="#0A2946" stroke-width="1.6"/>
+        </g>
+      </svg>
+    </div>
+
+    <button class="primary-btn" onclick="alert('Create flow: password + confirm → birthdate → security question → recovery phrase generation & confirmation → optional biometric')">
+      🌱 Create My HealthNote
+    </button>
+    <button class="secondary-btn" id="unlock-btn" onclick="alert('Unlock flow: password entry → biometric fallback if enabled')">
+      🔒 Unlock My HealthNote
+    </button>
+    <div class="disabled-note" id="unlock-note"></div>
+    <button class="forgot-link" id="forgot-btn" onclick="alert('Recovery flow: birthdate + security answer + recovery phrase or biometric')">Forgot password?</button>
+
+    <div class="privacy-line">
+      🛡️ Your health record stays on your device.
+    </div>
+  </div>
+
+  <!-- ================= SCREEN: DASHBOARD ================= -->
+  <div class="screen" id="screen-dashboard">
+    <div class="dash-header">
+      <h2 class="dash-title">My HealthNote</h2>
+      <div class="lock-pill"><span class="dot">🔒</span> Stored on this device</div>
+    </div>
+
+    <div class="hero-card">
+      <div class="hero-shield">🛡️</div>
+      <h2>Current Health Snapshot</h2>
+      <p>Your latest on-file health information at a glance.</p>
+      <button class="hero-btn" onclick="alert('Opens Current Health Snapshot: 1-page overview + detailed report + PDF export')">View latest summary ›</button>
+      <svg class="hero-art" viewBox="0 0 60 70">
+        <rect x="6" y="4" width="48" height="62" rx="6" fill="#12314f"/>
+        <rect x="18" y="0" width="24" height="10" rx="3" fill="#5E748B"/>
+        <rect x="14" y="16" width="32" height="16" rx="4" fill="#0A2946" stroke="#35AFAC" stroke-width="1"/>
+        <path d="M16 26 h6 l3 -6 l4 10 l3 -6 h8" stroke="#7DD9C1" stroke-width="1.4" fill="none"/>
+        <g stroke="#4a6580" stroke-width="2">
+          <line x1="14" y1="40" x2="40" y2="40"/>
+          <line x1="14" y1="48" x2="40" y2="48"/>
+          <line x1="14" y1="56" x2="34" y2="56"/>
+        </g>
+        <g fill="#73CDB8">
+          <circle cx="18" cy="40" r="3"/><circle cx="18" cy="48" r="3"/><circle cx="18" cy="56" r="3"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="section-row"><h3>Latest on-file results</h3><button class="section-link">All results ›</button></div>
+    <div class="results-row">
+      <div class="result-card">
+        <div class="result-top"><div class="result-icon">💧</div><div class="verified-dot">✓</div></div>
+        <div class="result-label">Blood glucose</div>
+        <div class="result-value">130 <span>mg/dL</span></div>
+        <div class="result-meta">Aug 24, 2026 • 18:48 · CN 001</div>
+        <div class="result-source">📷 System-observed</div>
+        <div class="baseline-badge" style="align-self:flex-start;margin-bottom:5px;">BASELINE</div>
+        <div class="result-trend">↓ 2 from last time</div>
+      </div>
+      <div class="result-card">
+        <div class="result-top"><div class="result-icon">❤️</div><div class="verified-dot">✓</div></div>
+        <div class="result-label">Blood pressure</div>
+        <div class="result-value">118/76 <span>mmHg</span></div>
+        <div class="result-meta">May 14, 2025 • 08:25</div>
+        <div class="result-source">📟 Digital monitor</div>
+        <div class="result-trend">↑ Stable</div>
+      </div>
+      <div class="result-card">
+        <div class="result-top"><div class="result-icon">⚖️</div><div class="verified-dot">✓</div></div>
+        <div class="result-label">Weight</div>
+        <div class="result-value">72.4 <span>kg</span></div>
+        <div class="result-meta">May 13, 2025 • 07:45</div>
+        <div class="result-source">📊 Smart scale</div>
+        <div class="result-trend">↓ 0.6 kg</div>
+      </div>
+      <div class="result-card">
+        <div class="result-top"><div class="result-icon">💧</div><div class="verified-dot">✓</div></div>
+        <div class="result-label">HbA1c</div>
+        <div class="result-value">5.6 <span>%</span></div>
+        <div class="result-meta">May 10, 2025 • 09:10</div>
+        <div class="result-source">🧪 Lab report</div>
+        <div class="result-trend">↓ 0.2%</div>
+      </div>
+    </div>
+
+    <div class="capture-wrap">
+      <button class="capture-btn" onclick="alert('Opens camera: capture source → OCR review → preserve date provenance → assign VERIFIED or UNVERIFIED and immutable control number')">📷</button>
+      <div class="capture-label">Capture</div>
+    </div>
+
+    <div class="section-row"><h3>Recent records</h3><button class="section-link">View all ›</button></div>
+    <div class="vigilance-card">
+      The newest cholesterol entry is unverified. A previous source-backed result is available for comparison.
+      <br><button onclick="alert('Both the latest unverified result and the most recent verified result will be attached with permanent status labels.')">Attach most recent verified info</button>
+    </div>
+    <div class="timeline">
+      <div class="record-row">
+        <div class="record-rail">
+          <div class="record-dot">🧪</div>
+          <div class="record-line"></div>
+        </div>
+        <div class="record-card">
+          <div>
+            <div class="record-title">Lab result</div>
+            <div class="record-sub">Lipid Profile</div>
+            <div class="record-date">May 14, 2025 • 08:30</div>
+          </div>
+          <div class="status-stack">
+            <div class="verified-badge">✓ Verified</div>
+            <div class="baseline-badge">BASELINE</div>
+            <span class="badge-sub">Lab report · CN 001</span>
+          </div>
+        </div>
+      </div>
+      <div class="record-row">
+        <div class="record-rail">
+          <div class="record-dot blue">📋</div>
+        </div>
+        <div class="record-card">
+          <div>
+            <div class="record-title">Prescription</div>
+            <div class="record-sub">Metformin 500 mg</div>
+            <div class="record-date">May 12, 2025 • 07:20</div>
+          </div>
+          <div class="status-stack">
+            <div class="unverified-badge">Unverified</div>
+            <span class="badge-sub">Manual entry · CN 002</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <button class="nav-item active" onclick="goTo('dashboard')">🏠<span>Dashboard</span><div class="nav-underline"></div></button>
+      <button class="nav-item" onclick="alert('Archive: full searchable record list')">🗄️<span>Archive</span></button>
+      <div class="nav-fab" onclick="alert('Capture')">📷</div>
+      <button class="nav-item" onclick="alert('Share: selective password-protected PDF export')">📤<span>Share</span></button>
+      <button class="nav-item" onclick="alert('Settings: biometric, recovery, categories, PDF options')">⚙️<span>Settings</span></button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let hasProfile = false;
+  let dedicationCanAdvance = false;
+
+  function goTo(name){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    document.querySelectorAll('.controls .row:first-child button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-nav-' + name).classList.add('active');
+    if(name === 'dedication'){
+      dedicationCanAdvance = false;
+      document.getElementById('tap-hint').classList.remove('show');
+      setTimeout(() => {
+        dedicationCanAdvance = true;
+        document.getElementById('tap-hint').classList.add('show');
+      }, 1400);
+    }
+  }
+
+  function handleDedicationTap(){
+    if(dedicationCanAdvance){
+      goTo('main');
+    }
+  }
+
+  function setProfile(exists){
+    hasProfile = exists;
+    document.getElementById('btn-noprofile').classList.toggle('active', !exists);
+    document.getElementById('btn-hasprofile').classList.toggle('active', exists);
+
+    const unlockBtn = document.getElementById('unlock-btn');
+    const forgotBtn = document.getElementById('forgot-btn');
+    const note = document.getElementById('unlock-note');
+
+    unlockBtn.disabled = !exists;
+    forgotBtn.disabled = !exists;
+    note.textContent = exists ? '' : 'No local profile yet — create one to enable this.';
+  }
+
+  goTo('dedication');
+  setProfile(false);
+</script>
+
+</body>
+</html>
