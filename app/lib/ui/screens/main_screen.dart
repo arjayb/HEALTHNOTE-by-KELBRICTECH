@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/tokens.dart';
 
-/// Screen 1 per CLAUDE_HANDOFF.md. [hasProfile] drives the behavior
-/// contract in the handoff's "Behavior" subsection: no local profile
+/// Screen 1 per approved visual specification. [hasProfile] drives the behavior
+/// contract in the product specification's "Behavior" subsection: no local profile
 /// -> Create is primary, Unlock disabled/explained; profile exists ->
 /// Unlock is the primary returning-user path.
 class MainScreen extends StatelessWidget {
@@ -83,7 +83,7 @@ class MainScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
-              // Notebook/heartbeat/shield artwork: per handoff rule #4,
+              // Notebook/heartbeat/shield artwork: per visual rule #4,
               // decorative artwork MAY be a bundled optimized raster
               // asset when code-native reproduction would reduce
               // fidelity. Using an asset placeholder here rather than
@@ -99,7 +99,7 @@ class MainScreen extends StatelessWidget {
                 ),
                 child: const Center(
                   child: Text(
-                    'artwork asset\n(bundled raster per handoff rule #4)',
+                    'artwork asset\n(bundled raster per visual rule #4)',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: HNColors.slate500, fontSize: 10),
                   ),

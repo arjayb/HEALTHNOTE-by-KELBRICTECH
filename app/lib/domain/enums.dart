@@ -1,5 +1,5 @@
 /// How a record's VERIFIED status was (or wasn't) established.
-/// Per compiled-006 §1: user confirmation of OCR/manual entry alone
+/// Per approved specification §1: user confirmation of OCR/manual entry alone
 /// is NOT sufficient — verification requires one of these two paths.
 enum VerificationMethod {
   originalSource, // attached original document/report/prescription/image
@@ -10,7 +10,7 @@ enum VerificationMethod {
 enum VerificationState { verified, unverified }
 
 /// Where a record's date information came from. Distinct fields, not
-/// a single blended "date" — see compiled-006 §6 and base handoff's
+/// a single blended "date" — see approved specification §6 and product specification's
 /// date-integrity rule (never substitute addedAt for clinical date).
 enum DateProvenance {
   dateFromSource, // clinicalDate, from the original document

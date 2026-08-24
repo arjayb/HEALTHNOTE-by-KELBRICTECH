@@ -6,7 +6,7 @@ import '../../theme/tokens.dart';
 import '../widgets/result_card.dart';
 import '../widgets/status_badge.dart';
 
-/// Screen 3. Corrections applied per REVIEW — HEALTHNOTE-SCAFFOLD-001:
+/// Screen 3. Corrections applied per scaffold review:
 /// hero copy changed from "latest verified" to "latest on-file" (§7);
 /// a real Show all / Verified only filter now drives what's rendered
 /// (§7); the vigilance "attach" action writes to a real
@@ -30,7 +30,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  RecordFilter _filter = RecordFilter.showAll; // default per §3.1 / compiled-006 §4
+  RecordFilter _filter = RecordFilter.showAll; // default per §3.1 / approved specification §4
 
   @override
   Widget build(BuildContext context) {

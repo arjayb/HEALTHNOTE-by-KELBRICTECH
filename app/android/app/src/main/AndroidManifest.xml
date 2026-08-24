@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!--
-        Permissions kept to the minimum the handoff's feature set
+        Permissions kept to the minimum the product specification's feature set
         actually requires — no network permission, per
         HEALTHNOTE_ARCHITECTURE.md §3.7 (no network call from any core
         path). Re-verify this list against whatever the final OCR/

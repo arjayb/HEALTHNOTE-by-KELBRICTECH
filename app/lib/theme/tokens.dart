@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Design tokens transcribed directly from CLAUDE_HANDOFF.md.
-/// Do not substitute Material defaults — see handoff rule #2.
+/// Design tokens transcribed directly from approved visual specification.
+/// Do not substitute Material defaults — see visual rule #2.
 class HNColors {
   static const navy950 = Color(0xFF020817);
   static const navy900 = Color(0xFF01122E);
@@ -17,7 +17,7 @@ class HNColors {
   static const slate500 = Color(0xFF5E748B);
   static const verifiedBlue = Color(0xFF256BC5);
 
-  // Semantic colors implied by compiled-006 (not in original handoff
+  // Semantic colors implied by the approved product specification
   // palette — chosen to stay within the existing family rather than
   // introducing new brand colors). Flag for visual approval alongside
   // the rest of the UI, per user preference for design sign-off before
@@ -27,8 +27,8 @@ class HNColors {
 }
 
 class HNRadii {
-  static const majorCard = 26.0; // 24-30dp per handoff
-  static const standard = 18.0; // 16-22dp per handoff
+  static const majorCard = 26.0; // approved 24-30dp range
+  static const standard = 18.0; // approved 16-22dp range
 }
 
 class HNSpacing {
@@ -38,9 +38,9 @@ class HNSpacing {
 }
 
 class HNType {
-  // Prefer Inter for UI; platform-safe fallback per handoff.
+  // Prefer Inter for UI; use a platform-safe fallback.
   static const uiFamily = 'Inter';
-  // Prefer Cormorant Garamond for dedication serif per handoff.
+  // Prefer Cormorant Garamond for the dedication serif.
   static const dedicationFamily = 'Cormorant Garamond';
 
   static const wordmark = TextStyle(
@@ -59,7 +59,7 @@ class HNType {
   );
 }
 
-/// Minimum control heights per handoff shape/elevation rules
+/// Minimum control heights from the approved visual specification.
 /// (52dp min, 58-64dp preferred for primary controls).
 class HNSizes {
   static const primaryControlMin = 52.0;

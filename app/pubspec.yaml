@@ -14,7 +14,7 @@ environment:
 # placeholders; run `flutter pub get` / `flutter pub outdated` on a real
 # machine and pin exact versions before this is treated as buildable.
 #
-# Each dependency is chosen against the handoff's own bar: maintenance
+# Each dependency is chosen against the product specification's own bar: maintenance
 # status, license, platform support, and "does it ever leave the device."
 # That check still needs to happen against current pub.dev data — it
 # could not be verified without network access here.
@@ -52,7 +52,7 @@ dependencies:
   pdf: ^3.10.0
   printing: ^5.11.0
 
-  # BIP39 wordlist for the 12-word recovery phrase (compiled-006 §11).
+  # BIP39 wordlist for the 12-word recovery phrase (approved specification §11).
   # Using it purely as a wordlist/checksum utility, not for any wallet
   # or blockchain functionality — flagged in code comments to avoid
   # confusing this with a crypto-wallet seed.

@@ -4,9 +4,9 @@ import '../../theme/tokens.dart';
 import 'status_badge.dart';
 
 /// One card in the "Latest verified results" row. Despite the section
-/// title inherited from the base handoff, this card shows whatever
+/// title inherited from the product specification, this card shows whatever
 /// `FieldSnapshotResult.mostRecentOnFile` is — verified or not — per
-/// compiled-006 §5: the newest record is never hidden just because
+/// approved specification §5: the newest record is never hidden just because
 /// it's unverified.
 class ResultCard extends StatelessWidget {
   final FieldSnapshotResult result;

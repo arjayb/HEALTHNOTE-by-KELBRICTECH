@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../theme/tokens.dart';
 
-/// Screen 2 per CLAUDE_HANDOFF.md: shown on first launch, before
+/// Screen 2 per approved visual specification: shown on first launch, before
 /// profile creation. Verbatim copy, fade-in, tap-to-continue only
 /// after a minimum display period, reduced-motion respected.
 class DedicationScreen extends StatefulWidget {
@@ -21,7 +21,7 @@ class _DedicationScreenState extends State<DedicationScreen> {
     super.initState();
     // Minimum display period before tap-to-continue activates — the
     // dedication must "remain readable long enough to register" per
-    // the handoff, not be instantly skippable.
+    // the product specification, not be instantly skippable.
     Timer(const Duration(milliseconds: 1400), () {
       if (mounted) setState(() => _canAdvance = true);
     });

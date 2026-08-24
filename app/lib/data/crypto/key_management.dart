@@ -61,7 +61,7 @@ class KeyManagement {
     return Uint8List.fromList(await secretKey.extractBytes());
   }
 
-  /// Per compiled-006 §11: the recovery phrase is a HealthNote-specific
+  /// Per approved specification §11: the recovery phrase is a HealthNote-specific
   /// recovery credential, not a wallet seed — BIP39 word generation
   /// happens in a separate onboarding-flow module (not written in this
   /// pass); this method only derives a key from an already-generated
@@ -142,7 +142,7 @@ class KeyManagement {
 
 /// Persistent, tamper-resistant rate limiting per §4.3 — replaces the
 /// earlier in-memory `RateLimiter`, which reset on every app restart
-/// (REVIEW §9). State lives behind `flutter_secure_storage`, the same
+/// (scaffold review §9). State lives behind `flutter_secure_storage`, the same
 /// protected boundary as the wrapped keys, not a plain preference file.
 ///
 /// STATUS: written against flutter_secure_storage's API; device-level

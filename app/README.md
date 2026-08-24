@@ -32,16 +32,10 @@ Do not enter real health data until the security and storage blockers are closed
 
 ## Reproduce the current Android proof build
 
-Requirements: Flutter 3.47.1, a compatible Android SDK, and PowerShell.
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tool\build_android.ps1
-```
-
-The script restores missing generated Android platform files, checks the source
-manifest privacy gates, resolves dependencies, runs analysis and tests, builds a
-debug APK, and prints its SHA-256 hash. The same proof path is defined in
-`.github/workflows/flutter-android.yml`.
+The repository-level GitHub Actions workflow restores generated Android
+platform files, checks source-manifest privacy gates, resolves dependencies,
+runs analysis and tests, builds a debug APK, and preserves it as a downloadable
+workflow artifact.
 
 ## Public development record
 
