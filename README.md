@@ -2,7 +2,7 @@
 
 > Your personal health information tracker.
 
-**Status:** Concept announced · Discovery in progress · First working prototype pending
+**Status:** DISCOVER complete · DESIGN complete · BUILD in progress
 
 HEALTHNOTE is a privacy-first, patient-owned mobile application concept from KELBRICTECH. It is designed to turn scattered medical documents and readings from home health devices into a verified, chronological health record stored on the user's own device.
 
@@ -19,8 +19,9 @@ HEALTHNOTE is being designed to make that answer available without requiring the
 - **Patient-owned:** the record belongs to the patient.
 - **Local-first:** health information stays on the user's device by default.
 - **Offline-capable:** core recordkeeping does not require continuous connectivity.
-- **Verified extraction:** scanned values must be reviewed before becoming part of the health record.
+- **Source-backed verification:** every entry permanently discloses whether it is verified or unverified.
 - **Chronology with provenance:** every value retains its date, source, and verification status.
+- **Stable baselines:** the first on-file entry for each field remains visibly marked as its baseline.
 - **Deliberate sharing:** nothing leaves the device unless the user intentionally exports it.
 - **Information, not diagnosis:** the prototype organizes patient-provided information and does not replace professional medical care.
 
@@ -28,11 +29,13 @@ HEALTHNOTE is being designed to make that answer available without requiring the
 
 ### 1. Latest-results dashboard
 
-Display the most recent verified entry from every populated health category, with its unit, date, source, status, and access to its full history.
+Display the most recent on-file entry from every populated health category, with its unit, date, source, verification status, baseline status, and access to its full history.
+
+If the newest entry is unverified, HEALTHNOTE offers to attach the most recent verified result for that field without hiding or replacing the newer entry.
 
 ### 2. Medical-document scanner
 
-Photograph or upload laboratory results, prescriptions, procedure records, and other health documents. Detect relevant information—especially dates and timestamps—and require user verification before saving extracted data.
+Photograph or upload laboratory results, prescriptions, procedure records, and other health documents. Detect relevant information—especially dates and timestamps—and preserve a traceable relationship between each extracted record and its original source.
 
 ### 3. Camera and file intake
 
@@ -50,17 +53,21 @@ For older documents without a clinical date, upload time will never be presented
 
 ### 6. Current Health Snapshot
 
-One action assembles the latest verified entry from every populated category into a concise patient snapshot, with a detailed supporting report available when needed.
+One action assembles the latest on-file entry from every populated category into a concise patient snapshot. Verified, unverified, and baseline labels remain visible. When the latest entry is unverified, the user can attach the most recent source-backed result for comparison.
 
 ### 7. Selective protected sharing
 
-Let the patient select some or all information, choose a date range, include or exclude original documents, and generate a password-protected PDF on the device.
+Let the patient select some or all information, choose a date range, include or exclude original documents, and generate a password-protected PDF on the device. Verification, baseline, chronology provenance, and immutable control numbers remain visible in shared outputs.
+
+### 8. Patient-controlled access and recovery
+
+Use a user-created password, optional device biometrics, and an on-device 12-word recovery phrase. No email account or centralized HEALTHNOTE account is required for the prototype.
 
 ## What makes the complete workflow different
 
 Individual products already validate local health-record storage, document OCR, medical timelines, device-display scanning, and one-click summaries. HEALTHNOTE's prototype will test the value of combining them into one coherent workflow:
 
-**Capture → Verify → Timestamp → Organize → Surface latest information → Share selectively**
+**Capture → Classify provenance → Timestamp → Organize → Surface latest information → Share selectively**
 
 We have not found another product publicly documenting this exact complete workflow. This is not a claim that no such product exists; it is the current outcome of our discovery work.
 
@@ -70,12 +77,17 @@ HEALTHNOTE follows KELBRICTECH's four-stage product protocol:
 
 | Stage | Objective | Status |
 | --- | --- | --- |
-| DISCOVER | Establish the opportunity and intended value | In progress |
-| DESIGN | Shape the product experience | Pending |
-| BUILD | Create the working prototype | Pending |
+| DISCOVER | Establish the opportunity and intended value | Complete |
+| DESIGN | Shape the product experience | Complete |
+| BUILD | Create the working prototype | In progress |
 | PROVE | Validate the result | Pending |
 
 Detailed internal development methods and implementation workflows are proprietary to KELBRICTECH.
+
+## Public artifacts
+
+- [Interactive mobile-interface prototype](prototype/index.html)
+- [Confirmed public product behavior](PRODUCT_SPEC.md)
 
 ## Safety and scope
 
