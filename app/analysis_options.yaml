@@ -1,0 +1,21 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    prefer_const_constructors: true
+    avoid_print: true
+    prefer_final_locals: true
+
+analyzer:
+  errors:
+    # Domain invariants throw on purpose (see models.dart) — don't
+    # let the linter push toward swallowing them.
+    unnecessary_null_comparison: warning
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**

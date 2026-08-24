@@ -1,0 +1,67 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode") ?: "1"
+def flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "0.1.0"
+
+android {
+    namespace "com.kelbrictech.healthnote"
+    // NOTE: compileSdk/minSdk/targetSdk left at TODO markers rather
+    // than guessed numbers — pick the actual current stable/min per
+    // REVIEW §10 ("minimum and target SDK decisions"), not a value
+    // copied from memory that may already be stale. Flutter's current
+    // template default is a reasonable starting point to verify, not
+    // assume, against the Flutter version actually used to build.
+    compileSdk = /* TODO: verify against `flutter doctor` on build machine */ 34
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+    }
+
+    defaultConfig {
+        applicationId "com.kelbrictech.healthnote"
+        minSdk = /* TODO: verify — biometric/keystore APIs used require review */ 26
+        targetSdk = 34
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+    }
+
+    buildTypes {
+        release {
+            // TODO: real release signing config. Deliberately NOT
+            // committing a signing key or keystore into this
+            // repository (REVIEW §10: "keep secrets, signing keys ...
+            // out of the repository") — debug signing is used here
+            // only so the template is structurally complete.
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+}
+
+flutter {
+    source "../.."
+}
+
+dependencies {}

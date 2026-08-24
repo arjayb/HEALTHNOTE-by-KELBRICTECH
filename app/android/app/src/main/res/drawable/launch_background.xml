@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder launch background — real splash should reproduce the
+     dedication screen's navy background (#020817) per CLAUDE_HANDOFF.md,
+     not the Flutter template default. Flagged for visual approval
+     alongside the rest of the UI. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@android:color/black" />
+</layer-list>

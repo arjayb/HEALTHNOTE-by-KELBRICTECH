@@ -1,0 +1,47 @@
+name: Flutter Android proof
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/flutter-android.yml'
+  pull_request:
+    paths:
+      - 'app/**'
+      - '.github/workflows/flutter-android.yml'
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+          cache: true
+      - name: Complete Android scaffold
+        run: flutter create --platforms=android --org com.kelbrictech --project-name healthnote .
+      - name: Remove generated template test
+        run: |
+          if [ -f test/widget_test.dart ] && grep -q 'MyApp' test/widget_test.dart; then
+            rm test/widget_test.dart
+          fi
+      - name: Privacy manifest gate
+        run: |
+          ! grep -q 'android.permission.INTERNET' android/app/src/main/AndroidManifest.xml
+          grep -q 'android:allowBackup="false"' android/app/src/main/AndroidManifest.xml
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      - run: flutter build apk --debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: healthnote-debug-apk
+          path: app/build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error

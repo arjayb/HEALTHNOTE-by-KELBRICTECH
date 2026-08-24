@@ -1,0 +1,18 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+build/
+*.iml
+
+# Android
+android/local.properties
+android/.gradle/
+android/key.properties
+*.jks
+*.keystore
+
+# Internal coordination records are not part of the public product record.
+HEALTHNOTE_SESSION_HANDOFF*
+
+# Never commit real secrets/signing material
+**/secrets/

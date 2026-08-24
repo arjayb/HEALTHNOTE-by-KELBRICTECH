@@ -1,0 +1,83 @@
+name: healthnote
+description: >
+  HEALTHNOTE by KELBRICTECH — patient-owned, offline-first personal
+  health information tracker. Prototype build.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+# NOTE (evidence-calibration): this pubspec has not been resolved with
+# `flutter pub get` in this environment — no Flutter/Dart SDK or network
+# access is available in the build sandbox. Versions below are unpinned
+# placeholders; run `flutter pub get` / `flutter pub outdated` on a real
+# machine and pin exact versions before this is treated as buildable.
+#
+# Each dependency is chosen against the handoff's own bar: maintenance
+# status, license, platform support, and "does it ever leave the device."
+# That check still needs to happen against current pub.dev data — it
+# could not be verified without network access here.
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Local encrypted storage. Candidate: sqlite3 / drift with SQLCipher-style
+  # page encryption, OR a plain encrypted key-value store (hive-derivative)
+  # for the prototype's simpler record volume. Chosen at implementation
+  # time; either must have zero network egress.
+  drift: ^2.0.0
+  sqlite3_flutter_libs: ^0.5.0
+
+  # AES-256-GCM + Argon2id. `cryptography` package is the maintained,
+  # audited-primitives choice (wraps platform/BoringSSL where available)
+  # rather than hand-rolling AES/Argon2.
+  cryptography: ^2.5.0
+
+  # Android Keystore-backed key storage for the biometric unwrap path.
+  flutter_secure_storage: ^9.0.0
+
+  # Biometric prompt.
+  local_auth: ^2.1.0
+
+  # On-device OCR. Candidate: google_mlkit_text_recognition (on-device
+  # model, no network call for recognition itself) — must be re-verified
+  # against current docs that the specific recognizer used stays local.
+  google_mlkit_text_recognition: ^0.11.0
+
+  camera: ^0.10.5
+
+  # On-device PDF generation.
+  pdf: ^3.10.0
+  printing: ^5.11.0
+
+  # BIP39 wordlist for the 12-word recovery phrase (compiled-006 §11).
+  # Using it purely as a wordlist/checksum utility, not for any wallet
+  # or blockchain functionality — flagged in code comments to avoid
+  # confusing this with a crypto-wallet seed.
+  bip39: ^1.0.6
+
+  path_provider: ^2.1.0
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  # Inter and Cormorant Garamond, bundled as variable fonts (SIL OFL,
+  # sourced from the google/fonts repo) rather than one static file per
+  # weight — Flutter interpolates the wght axis from TextStyle.fontWeight
+  # against a single file, which is all google/fonts ships upstream now.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Variable.ttf
+    - family: Cormorant Garamond
+      fonts:
+        - asset: assets/fonts/CormorantGaramond-Variable.ttf
+  assets:
+    - assets/images/
