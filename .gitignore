@@ -1,0 +1,38 @@
+# Mobile and JavaScript build outputs
+node_modules/
+dist/
+build/
+.expo/
+.gradle/
+android/.gradle/
+android/app/build/
+ios/Pods/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+*.p12
+*.pem
+
+# Local databases and health-data test exports
+*.db
+*.sqlite
+*.sqlite3
+private-data/
+patient-data/
+medical-records/
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Logs and test artifacts
+*.log
+coverage/
+test-results/
