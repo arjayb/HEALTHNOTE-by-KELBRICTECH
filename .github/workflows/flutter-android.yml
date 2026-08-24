@@ -60,6 +60,26 @@ jobs:
           ! grep -q 'android.permission.INTERNET' android/app/src/main/AndroidManifest.xml
           grep -q 'android:allowBackup="false"' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
+      - name: Align legacy OCR plugin compile SDK
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          pub_cache = Path(os.environ['PUB_CACHE'])
+          files = list(pub_cache.glob('hosted/pub.dev/google_mlkit_*/android/build.gradle'))
+          if not files:
+              raise SystemExit('No Google ML Kit Android Gradle files found')
+
+          for path in files:
+              text = path.read_text()
+              updated = re.sub(r'compileSdkVersion\s+\d+', 'compileSdkVersion 36', text)
+              updated = re.sub(r'compileSdk\s*=\s*\d+', 'compileSdk = 36', updated)
+              if updated != text:
+                  path.write_text(updated)
+                  print(f'Aligned {path.name} under {path.parent.parent.name}')
+          PY
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
       - run: flutter build apk --debug
