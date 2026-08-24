@@ -2,7 +2,7 @@
 
 > Your personal health information tracker.
 
-**Status:** DISCOVER complete · DESIGN complete · BUILD in progress
+**Status:** DISCOVER complete · DESIGN complete · BUILD prototype scaffold complete · first PROVE checkpoint complete
 
 HEALTHNOTE is a privacy-first, patient-owned mobile application concept from KELBRICTECH. It is designed to turn scattered medical documents and readings from home health devices into a verified, chronological health record stored on the user's own device.
 
@@ -79,8 +79,8 @@ HEALTHNOTE follows KELBRICTECH's four-stage product protocol:
 | --- | --- | --- |
 | DISCOVER | Establish the opportunity and intended value | Complete |
 | DESIGN | Shape the product experience | Complete |
-| BUILD | Create the working prototype | In progress |
-| PROVE | Validate the result | Pending |
+| BUILD | Create the working prototype scaffold | Complete |
+| PROVE | Validate the result | First cloud-build checkpoint complete; continued validation required |
 
 Detailed internal development methods and implementation workflows are proprietary to KELBRICTECH.
 
@@ -105,8 +105,8 @@ No real patient information, credentials, private medical documents, or identifi
 
 ## Creator
 
-Concept and product direction by **KELBRICTECH**.
+Concept and product direction by **KELBRIC Technologies**, presented under the **KELBRICTECH** product signature.
 
 ---
 
-© 2026 KELBRICTECH. Prototype documentation. All rights reserved.
+© 2026 KELBRIC Technologies. Prototype documentation. All rights reserved.
