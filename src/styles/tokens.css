@@ -1,0 +1,51 @@
+/*
+  Design tokens.
+  Base values sampled from the approved visual references. Values remain
+  tunable against source art and are not treated as immutable.
+*/
+:root {
+  /* Core surfaces */
+  --hn-navy-main: #01132e;        /* main-page background (sampled) */
+  --hn-navy-dedication: #020817;
+  --hn-navy-dashboard-hero: #011936;
+  --hn-navy-elevated: #0b2a47;
+  --hn-navy-bg: var(--hn-navy-main); /* generic alias, kept for existing components */
+  --hn-navy-card: var(--hn-navy-dashboard-hero);
+
+  --hn-ivory-bg: #fdfbf8;         /* dashboard page background (sampled) */
+  --hn-ivory-white: #ffffff;
+
+  /* Accent */
+  --hn-mint: #5bc9b8;             /* primary mint/teal (sampled) */
+  --hn-mint-strong: #52c9c1;
+  --hn-mint-soft: #77d3bc;
+  --hn-teal-active: #35afad;
+
+  /* Text */
+  --hn-ivory-text: #f4e6cc;
+  --hn-silver: #c7d0d6;           /* shield / secondary iconography (sampled) */
+  --hn-navy-text: #041428;        /* dark text on ivory surfaces */
+  --hn-muted-on-navy: #9fb3c8;
+  --hn-muted-on-ivory: #5f778b;
+
+  /* Status */
+  --hn-verified: #2fae8b;
+  --hn-unverified: #b68a4d;
+  --hn-baseline: #c7a970;
+
+  /* Typography */
+  --hn-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --hn-font-serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+
+  /* Shape */
+  --hn-radius-lg: 22px;
+  --hn-radius-md: 16px;
+  --hn-radius-full: 999px;
+  --hn-tap-min: 44px;
+  --hn-max-width: 430px;
+  --hn-icon-stroke: 2px;
+
+  /* Elevation and glow */
+  --hn-glow-mint: 0 0 24px rgba(91, 201, 184, 0.35);
+  --hn-shadow-card: 0 4px 16px rgba(1, 25, 54, 0.22);
+}

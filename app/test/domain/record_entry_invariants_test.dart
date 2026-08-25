@@ -3,15 +3,12 @@ import 'package:healthnote/domain/enums.dart';
 import 'package:healthnote/domain/field_identity.dart';
 import 'package:healthnote/domain/models.dart';
 
-/// STATUS: written against the domain API, never executed — no Dart
-/// SDK in the sandbox that wrote this. Run with `flutter test` on a
-/// real machine; treat every `expect` below as "intended behavior,"
-/// not "confirmed behavior," until it has actually run green.
+/// Domain-level invariant coverage for record verification behavior.
 void main() {
   final field = const FieldIdentity('blood_glucose');
   final now = DateTime.now();
 
-  group('RecordEntry.verified invariants (§3.2)', () {
+  group('RecordEntry.verified invariants', () {
     test('originalSource requires a non-empty sourceAttachmentId', () {
       expect(
         () => RecordEntry.verified(
@@ -102,7 +99,7 @@ void main() {
         sourceType: SourceType.labReport,
       );
       expect(r.verificationState, VerificationState.verified);
-      expect(r.isBaseline, isFalse); // never set by the factory — see §3.4
+      expect(r.isBaseline, isFalse); // never set by the factory — see
     });
 
     test('valid systemTimestampedCapture construction succeeds', () {
@@ -123,7 +120,7 @@ void main() {
     });
   });
 
-  group('RecordEntry.unverified invariants (§3.2)', () {
+  group('RecordEntry.unverified invariants', () {
     test('always has verificationMethod.none regardless of caller', () {
       final r = RecordEntry.unverified(
         id: 'b',
@@ -141,7 +138,7 @@ void main() {
     });
   });
 
-  group('effectiveChronologyTimestamp (§3.3 / §3.6)', () {
+  group('effectiveChronologyTimestamp', () {
     test('prefers clinicalDate over observedAt', () {
       final clinical = now.subtract(const Duration(days: 1));
       final observed = now;

@@ -1,4 +1,3 @@
-# Mobile and JavaScript build outputs
 node_modules/
 dist/
 build/
@@ -7,8 +6,10 @@ build/
 android/.gradle/
 android/app/build/
 ios/Pods/
+playwright-report/
+test-results/
 
-# Environment and secrets
+# Environment, credentials, and signing material
 .env
 .env.*
 !.env.example
@@ -17,7 +18,7 @@ ios/Pods/
 *.p12
 *.pem
 
-# Local databases and health-data test exports
+# Local databases and private health-data exports
 *.db
 *.sqlite
 *.sqlite3
@@ -25,14 +26,11 @@ private-data/
 patient-data/
 medical-records/
 
-# Editor and operating-system files
+# Coverage, editors, and operating-system files
+coverage/
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
 *.swp
-
-# Logs and test artifacts
 *.log
-coverage/
-test-results/

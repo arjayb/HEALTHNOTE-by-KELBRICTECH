@@ -19,8 +19,8 @@ class FieldSnapshotResult {
 }
 
 /// The contexts in which a user's choice to attach a verified
-/// companion record can independently apply — HEALTHNOTE_ARCHITECTURE.md
-/// §3.3 rule 6: a user may want the comparison on a provider-facing PDF
+/// companion record can independently apply.
+/// rule 6: a user may want the comparison on a provider-facing PDF
 /// without it cluttering the everyday dashboard.
 enum VigilanceContext { snapshot, detailedReport, pdfExport, protectedShare }
 
@@ -47,7 +47,7 @@ class VigilanceSelectionStore {
 }
 
 /// Which entries should show in a filtered dashboard/archive view.
-/// Compiled-006 §4: default is showAll; showVerifiedOnly is opt-in and
+/// Product rule: default is showAll; showVerifiedOnly is opt-in and
 /// must not be the default lens.
 enum RecordFilter { showAll, showVerifiedOnly }
 
@@ -85,7 +85,7 @@ class SnapshotService {
   }
 
   /// Applies a [RecordFilter] to a set of records for a field, WITHOUT
-  /// changing ranking. Per §3.1: "Show all entries" must preserve
+  /// changing ranking. Per: "Show all entries" must preserve
   /// permanent VERIFIED/UNVERIFIED labels — filtering only changes
   /// which records are included, never how they're labeled.
   List<RecordEntry> applyFilter(List<RecordEntry> records, RecordFilter filter) {
@@ -93,7 +93,7 @@ class SnapshotService {
     return records.where((r) => r.verificationState == VerificationState.verified).toList();
   }
 
-  /// Comparator implementing §3.3 rules 1-4, newest first.
+  /// Comparator implementing rules 1-4, newest first.
   int _compareForRanking(RecordEntry a, RecordEntry b) {
     final aTs = a.effectiveChronologyTimestamp;
     final bTs = b.effectiveChronologyTimestamp;

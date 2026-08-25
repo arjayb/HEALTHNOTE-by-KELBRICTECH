@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">HealthNote five-line signature mark</title>
+  <desc id="desc">Five slender vertical strokes crossed by a restrained rising curve.</desc>
+  <defs>
+    <linearGradient id="brand-gradient" x1="48" y1="128" x2="216" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F4E5C8"/>
+      <stop offset="0.38" stop-color="#B1C5CC"/>
+      <stop offset="0.68" stop-color="#7DD9C1"/>
+      <stop offset="1" stop-color="#35AFAD"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#brand-gradient)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M72 92V184" stroke-width="5"/>
+    <path d="M100 65V203" stroke-width="5"/>
+    <path d="M128 38V218" stroke-width="5"/>
+    <path d="M156 65V203" stroke-width="5"/>
+    <path d="M184 92V184" stroke-width="5"/>
+    <path d="M30 181C67 147 94 126 128 124C161 122 193 119 226 90" stroke-width="6"/>
+  </g>
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round" opacity="0.34">
+    <path d="M72 93V183" stroke-width="1.1"/>
+    <path d="M100 66V202" stroke-width="1.1"/>
+    <path d="M128 39V217" stroke-width="1.1"/>
+    <path d="M156 66V202" stroke-width="1.1"/>
+    <path d="M184 93V183" stroke-width="1.1"/>
+    <path d="M31 180C68 146 94 125 128 123C161 121 193 118 225 90" stroke-width="1.2"/>
+  </g>
+</svg>

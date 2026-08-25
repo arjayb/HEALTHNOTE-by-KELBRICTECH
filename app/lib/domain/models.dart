@@ -18,7 +18,7 @@ class CorrectionHistoryEntry {
 }
 
 /// Thrown when an attempt is made to construct a [RecordEntry] in a
-/// state the domain forbids — see HEALTHNOTE_ARCHITECTURE.md §3.2.
+/// state the domain forbids — see the architecture.
 class InvalidRecordStateException implements Exception {
   final String message;
   const InvalidRecordStateException(this.message);
@@ -30,12 +30,12 @@ class InvalidRecordStateException implements Exception {
 ///
 /// No public unnamed constructor — every instance is built through
 /// [RecordEntry.verified] or [RecordEntry.unverified], which enforce
-/// the domain invariants from HEALTHNOTE_ARCHITECTURE.md §3.2 before
+/// the domain invariants from the architecture before
 /// the object can exist. Fixes the earlier scaffold, whose open
 /// constructor allowed e.g. VERIFIED with no source and no observedAt.
 ///
 /// controlNumber/ingestionSequence are still constructor parameters —
-/// the *value* comes from the repository's atomic allocation (§3.4).
+/// the *value* comes from the repository's atomic allocation.
 /// This class only guarantees they can't be mutated afterward (no
 /// setters); correct allocation is the repository's responsibility.
 class RecordEntry {
@@ -93,7 +93,7 @@ class RecordEntry {
   /// path) OR observedAt + capture provenance (system-timestamped path)
   /// — enforced here, not left to caller discipline. isBaseline is not
   /// a parameter: it's assigned only by the repository transaction
-  /// (§3.4), never at construction, so workflow/UI code can't set it.
+  ///, never at construction, so workflow/UI code can't set it.
   factory RecordEntry.verified({
     required String id,
     required int controlNumber,
@@ -130,7 +130,7 @@ class RecordEntry {
       throw const InvalidRecordStateException(
         'VERIFIED records must have verificationMethod originalSource or '
         'systemTimestampedCapture — user confirmation alone is not sufficient '
-        '(HEALTHNOTE_ARCHITECTURE.md §3.1).',
+        '(the architecture).',
       );
     }
 
@@ -159,7 +159,7 @@ class RecordEntry {
   }
 
   /// UNVERIFIED. verificationMethod is forced to `none` — an unverified
-  /// record cannot simultaneously claim a verification method (§3.2).
+  /// record cannot simultaneously claim a verification method.
   factory RecordEntry.unverified({
     required String id,
     required int controlNumber,
@@ -204,7 +204,7 @@ class RecordEntry {
   }
 
   /// Only for repository use, immediately after the transactional
-  /// baseline check in §3.4. Nothing outside the repository should call
+  /// baseline check in. Nothing outside the repository should call
   /// this — see the extension below and its doc comment.
   RecordEntry withBaselineFlagFromRepository(bool value) => RecordEntry._(
         id: id,
@@ -230,7 +230,7 @@ class RecordEntry {
       );
 
   /// clinicalDate wins; observedAt is valid only for a contemporaneous
-  /// system-timestamped capture; addedAt is NEVER used (§3.3 rule 2).
+  /// system-timestamped capture; addedAt is NEVER used.
   DateTime? get effectiveChronologyTimestamp => clinicalDate ?? observedAt;
 
   String get displayLabel {

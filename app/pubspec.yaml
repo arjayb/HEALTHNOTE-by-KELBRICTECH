@@ -8,16 +8,9 @@ version: 0.1.0
 environment:
   sdk: '>=3.3.0 <4.0.0'
 
-# NOTE (evidence-calibration): this pubspec has not been resolved with
-# `flutter pub get` in this environment — no Flutter/Dart SDK or network
-# access is available in the build sandbox. Versions below are unpinned
-# placeholders; run `flutter pub get` / `flutter pub outdated` on a real
-# machine and pin exact versions before this is treated as buildable.
-#
-# Each dependency is chosen against the product specification's own bar: maintenance
-# status, license, platform support, and "does it ever leave the device."
-# That check still needs to happen against current pub.dev data — it
-# could not be verified without network access here.
+# Prototype dependency ranges must be reviewed, updated, and pinned before a
+# production release. Package maintenance, licensing, platform support, and
+# network behavior remain part of release validation.
 
 dependencies:
   flutter:
@@ -52,7 +45,7 @@ dependencies:
   pdf: ^3.10.0
   printing: ^5.11.0
 
-  # BIP39 wordlist for the 12-word recovery phrase (approved specification §11).
+  # BIP39 wordlist for the planned 12-word recovery phrase.
   # Using it purely as a wordlist/checksum utility, not for any wallet
   # or blockchain functionality — flagged in code comments to avoid
   # confusing this with a crypto-wallet seed.

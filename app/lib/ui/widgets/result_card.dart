@@ -6,7 +6,7 @@ import 'status_badge.dart';
 /// One card in the "Latest verified results" row. Despite the section
 /// title inherited from the product specification, this card shows whatever
 /// `FieldSnapshotResult.mostRecentOnFile` is — verified or not — per
-/// approved specification §5: the newest record is never hidden just because
+/// the product rules: the newest record is never hidden just because
 /// it's unverified.
 class ResultCard extends StatelessWidget {
   final FieldSnapshotResult result;

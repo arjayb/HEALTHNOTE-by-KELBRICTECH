@@ -4,7 +4,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Implements HEALTHNOTE_ARCHITECTURE.md §4.2 using the `cryptography`
+/// Implements the architecture using the `cryptography`
 /// package's actual API (AesGcm.with256bits, Argon2id) rather than
 /// UnimplementedError stubs.
 ///
@@ -61,7 +61,7 @@ class KeyManagement {
     return Uint8List.fromList(await secretKey.extractBytes());
   }
 
-  /// Per approved specification §11: the recovery phrase is a HealthNote-specific
+  /// Per the product rules: the recovery phrase is a HealthNote-specific
   /// recovery credential, not a wallet seed — BIP39 word generation
   /// happens in a separate onboarding-flow module (not written in this
   /// pass); this method only derives a key from an already-generated
@@ -108,7 +108,7 @@ class KeyManagement {
     return Uint8List.fromList(plain);
   }
 
-  /// Password reset per §4.2: caller has already verified the identity
+  /// Password reset per: caller has already verified the identity
   /// gate (birthdate + security-answer hash, rate-limited — see
   /// PersistentRateLimiter below) and already unwrapped the DEK via
   /// the recovery-phrase or biometric path. This derives a NEW
@@ -124,7 +124,7 @@ class KeyManagement {
   }
 
   /// Salted Argon2id hash of the security answer, for the one-way
-  /// identity-gate comparison only (§4.2: "never a decryption path").
+  /// identity-gate comparison only.
   Future<String> hashSecurityAnswer(String answer, Uint8List salt) async {
     final key = await _argon2id().deriveKeyFromPassword(password: answer, nonce: salt);
     final bytes = await key.extractBytes();
@@ -140,9 +140,9 @@ class KeyManagement {
       _secureStorage.write(key: key, value: value);
 }
 
-/// Persistent, tamper-resistant rate limiting per §4.3 — replaces the
+/// Persistent, tamper-resistant rate limiting per — replaces the
 /// earlier in-memory `RateLimiter`, which reset on every app restart
-/// (scaffold review §9). State lives behind `flutter_secure_storage`, the same
+/// (review). State lives behind `flutter_secure_storage`, the same
 /// protected boundary as the wrapped keys, not a plain preference file.
 ///
 /// STATUS: written against flutter_secure_storage's API; device-level

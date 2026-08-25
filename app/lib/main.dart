@@ -7,10 +7,9 @@ import 'ui/screens/dedication_screen.dart';
 import 'ui/screens/main_screen.dart';
 import 'ui/screens/dashboard_screen.dart';
 
-/// STATUS: wires the three screens together with illustrative fixture
-/// data so the flow can be reviewed end to end. Not run — no Flutter
-/// SDK in this sandbox (see README.md). Real data comes from the
-/// (not-yet-implemented against a real DB) TransactionalRecordRepository.
+/// Wires the three screens together with illustrative fixture data so the
+/// prototype flow can be reviewed end to end. Production data will come from
+/// the repository implementation after the encrypted storage layer is ready.
 void main() {
   runApp(const HealthNoteApp());
 }
@@ -72,7 +71,7 @@ class _FlowRootState extends State<_FlowRoot> {
   /// Illustrative fixture data built through the validated factories —
   /// deliberately includes a field (blood_glucose) where the newest
   /// record is UNVERIFIED with an older VERIFIED record available, to
-  /// exercise the §3.3 vigilance prompt and the new attach-state wiring.
+  /// exercise the vigilance prompt and attach-state wiring.
   List<FieldSnapshotResult> _sampleSnapshot() {
     final now = DateTime.now();
     final service = SnapshotService();

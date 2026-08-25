@@ -1,4 +1,4 @@
-/// Normalized, stable field identity — see HEALTHNOTE_ARCHITECTURE.md §2.1.
+/// Normalized, stable field identity — see the architecture.
 ///
 /// Replaces the earlier fixed enum, which could not distinguish
 /// individual lab analytes/medications from each other (everything

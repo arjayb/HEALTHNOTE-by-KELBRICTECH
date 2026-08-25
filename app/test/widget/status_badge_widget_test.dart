@@ -19,7 +19,7 @@ void main() {
     expect(find.textContaining('BASELINE'), findsNothing);
   });
 
-  testWidgets('StatusBadge shows UNVERIFIED · BASELINE composed label (§14 label composition)',
+  testWidgets('StatusBadge shows UNVERIFIED · BASELINE composed label',
       (tester) async {
     await tester.pumpWidget(wrap(const StatusBadge(
       verificationState: VerificationState.unverified,

@@ -6,11 +6,11 @@ import '../../theme/tokens.dart';
 import '../widgets/result_card.dart';
 import '../widgets/status_badge.dart';
 
-/// Screen 3. Corrections applied per scaffold review:
-/// hero copy changed from "latest verified" to "latest on-file" (§7);
+/// Dashboard behavior:
+/// hero copy changed from "latest verified" to "latest on-file";
 /// a real Show all / Verified only filter now drives what's rendered
-/// (§7); the vigilance "attach" action writes to a real
-/// [VigilanceSelectionStore] instead of an empty callback (§6).
+///; the vigilance "attach" action writes to a real
+/// [VigilanceSelectionStore] instead of an empty callback.
 class DashboardScreen extends StatefulWidget {
   final List<FieldSnapshotResult> snapshotResults;
   final FieldRegistry fieldRegistry;
@@ -30,7 +30,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  RecordFilter _filter = RecordFilter.showAll; // default per §3.1 / approved specification §4
+  RecordFilter _filter = RecordFilter.showAll; // default per / the product rules
 
   @override
   Widget build(BuildContext context) {
@@ -106,10 +106,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           fontWeight: FontWeight.w700,
                           color: HNColors.ivory50)),
                   const SizedBox(height: 6),
-                  // Corrected per review §7: was "latest verified
+                  // was "latest verified
                   // health information," which was inaccurate — the
                   // snapshot can and does surface unverified newest
-                  // results (§3.3 vigilance rule).
+                  // results.
                   const Text('Your latest on-file health information at a glance.',
                       style: TextStyle(fontSize: 12, color: HNColors.silver300)),
                   const SizedBox(height: 16),

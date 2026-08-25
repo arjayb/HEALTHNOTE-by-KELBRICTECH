@@ -4,8 +4,8 @@ import '../../domain/field_identity.dart';
 import '../../domain/models.dart';
 
 /// Repository contract for record persistence. The concrete
-/// implementation (encrypted SQLite/drift, per HEALTHNOTE_ARCHITECTURE.md
-/// §4.2) is not written in this scaffold — see README.md. What IS
+/// implementation using encrypted local storage is not included in this
+/// scaffold; see README.md. What is
 /// written here, for real, is the transactional shape that the
 /// concrete implementation must follow for baseline/control-number
 /// allocation, because getting that shape wrong (e.g. read-then-write
@@ -110,7 +110,7 @@ class TransactionalRecordRepository implements RecordRepository {
     // Real implementation: load the record inside a transaction, write
     // a DeletionTombstoneEvent preserving its controlNumber/fieldIdentity
     // /isBaseline, then remove it. Deliberately does NOT search for or
-    // assign a replacement baseline — per §3.4, that requires a
+    // assign a replacement baseline — per, that requires a
     // separate, explicit product action, never an automatic side
     // effect of deletion.
     throw UnimplementedError(
@@ -138,7 +138,7 @@ class TransactionalRecordRepository implements RecordRepository {
     // unit, clinical date, patient-identity field, medication identity,
     // dosage) and the record is not still directly source-supported,
     // demote verificationState to unverified and persist a
-    // VerificationStateChangedEvent — per §3.1/§3.5.
+    // VerificationStateChangedEvent — per.
     throw UnimplementedError('Needs a concrete TransactionalStore.');
   }
 

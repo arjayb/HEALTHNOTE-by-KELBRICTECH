@@ -65,7 +65,7 @@ void main() {
         );
   }
 
-  test('first record for a field is assigned BASELINE (§3.4)', () async {
+  test('first record for a field is assigned BASELINE', () async {
     final store = FakeTransactionalStore();
     final repo = TransactionalRecordRepository(store);
 

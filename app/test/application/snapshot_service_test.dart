@@ -55,7 +55,7 @@ void main() {
         sourceType: SourceType.labReport,
       );
 
-  test('dated record outranks an undated record regardless of createdAt (§3.3 rule 2)', () {
+  test('dated record outranks an undated record regardless of createdAt', () {
     final dated = verified(
       id: 'dated',
       controlNumber: 1,
@@ -72,7 +72,7 @@ void main() {
     expect(result.mostRecentOnFile.id, 'dated');
   });
 
-  test('newest stays newest even when unverified (§3.3 rule 4)', () {
+  test('newest stays newest even when unverified', () {
     final olderVerified = verified(
       id: 'old_v',
       controlNumber: 1,

@@ -3,7 +3,7 @@ import '../../domain/enums.dart';
 import '../../theme/tokens.dart';
 
 /// Renders VERIFIED/UNVERIFIED, optionally combined with BASELINE.
-/// Per approved specification §3 and §14: this label must appear on every
+/// Per the product rules and: this label must appear on every
 /// user-facing surface a record shows up on, and verification/baseline
 /// are separate properties that must not be collapsed into one field
 /// — so this widget takes them as two independent booleans/enums
@@ -53,7 +53,7 @@ class StatusBadge extends StatelessWidget {
 }
 
 /// The "Attach most recent verified info" vigilance prompt —
-/// approved specification §5. Shown whenever the newest on-file record for a
+/// the product rules. Shown whenever the newest on-file record for a
 /// field is unverified and an older verified record exists. Presents
 /// BOTH records side by side; never substitutes one for the other.
 class VigilancePrompt extends StatelessWidget {

@@ -30,12 +30,10 @@ supporting tests are present. The following remain release blockers:
 
 Do not enter real health data until the security and storage blockers are closed.
 
-## Reproduce the current Android proof build
+## Android prototype build
 
-The repository-level GitHub Actions workflow restores generated Android
-platform files, checks source-manifest privacy gates, resolves dependencies,
-runs analysis and tests, builds a debug APK, and preserves it as a downloadable
-workflow artifact.
+The repository includes automated validation for the mobile scaffold and can
+produce a debug APK for controlled prototype testing.
 
 ## Public development record
 

@@ -1,0 +1,66 @@
+@import "./tokens.css";
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--hn-font-sans);
+  background: #0a0a0a;
+  color: var(--hn-navy-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Mobile geometry:
+   - portrait-first, 100dvh, safe-area insets
+   - max content width ~430px when viewed on desktop
+   - no horizontal overflow
+   - min tap target 44x44 */
+.hn-app-frame {
+  max-width: var(--hn-max-width);
+  margin: 0 auto;
+  min-height: 100dvh;
+  min-height: 100vh; /* fallback for browsers without dvh */
+  position: relative;
+  overflow-x: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  display: flex;
+  flex-direction: column;
+}
+
+button, a, input, select, [role="button"] {
+  min-height: var(--hn-tap-min);
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+img, svg {
+  max-width: 100%;
+  display: block;
+}
+
+/* Prototype-mode banner */
+.hn-prototype-banner {
+  background: #241a06;
+  color: #f0c46a;
+  font-size: 12px;
+  text-align: center;
+  padding: 6px 10px;
+  line-height: 1.4;
+}

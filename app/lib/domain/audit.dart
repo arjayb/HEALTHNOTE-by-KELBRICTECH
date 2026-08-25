@@ -1,7 +1,7 @@
 import 'field_identity.dart';
 
 /// Immutable audit log entry. Every material state change produces one
-/// — see HEALTHNOTE_ARCHITECTURE.md §3.5. These are append-only: the
+/// — see the architecture. These are append-only: the
 /// repository must never update or delete an AuditEvent, only add new
 /// ones (including for deletions of the thing being audited).
 sealed class AuditEvent {
@@ -87,7 +87,7 @@ class BaselineAssignedEvent extends AuditEvent {
 }
 
 /// A baseline replacement only ever happens via explicit product
-/// action — see §3.4. This event exists so that action is auditable;
+/// action — see. This event exists so that action is auditable;
 /// nothing in the repository should ever emit this automatically.
 class BaselineReplacedEvent extends AuditEvent {
   final FieldIdentity fieldIdentity;
@@ -103,7 +103,7 @@ class BaselineReplacedEvent extends AuditEvent {
   });
 }
 
-/// Deletion tombstone. Per §3.4/§3.5: deleting a record — baseline or
+/// Deletion tombstone. Per: deleting a record — baseline or
 /// not — never silently removes it from history, and a deleted
 /// baseline's field simply has no baseline afterward (no
 /// auto-promotion). controlNumber is preserved here specifically so it
