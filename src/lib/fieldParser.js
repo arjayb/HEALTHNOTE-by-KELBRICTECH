@@ -34,20 +34,42 @@ function parseRange(text) {
   const m = String(text || "").match(/(-?\d+(?:[.,]\d+)?)\s*(?:-|–|—|to)\s*(-?\d+(?:[.,]\d+)?)/i);
   return m ? { low: parseNumberToken(m[1]), high: parseNumberToken(m[2]) } : null;
 }
-function inferUnit(text) {
+
+export function normalizeOcrUnit(rawUnit, fieldId = null) {
+  const raw = String(rawUnit || "").trim();
+  if (!raw) return null;
+  const compact = raw.toLowerCase().replace(/×/g, "x").replace(/\s+/g, "").replace(/[|]/g, "/");
+  if (compact.includes("%")) return "%";
+  if (/g\/?dl/.test(compact)) return "g/dL";
+  if (/g\/?l/.test(compact)) return "g/L";
+
+  // CBC count units are commonly mangled by OCR because the superscript caret
+  // or exponent sits between small glyphs. Normalize the notation only; never
+  // alter the measured value.
+  if (/x?10.*\/?l/.test(compact) || /^10.*\/?l/.test(compact)) {
+    if (fieldId === "wbc") return "x10^9/L";
+    if (fieldId === "rbc") return "x10^12/L";
+    const exponent = compact.match(/10(?:\^|[^0-9])*(9|12)/)?.[1]
+      || compact.match(/10\d*?(9|12)(?:\/|l|$)/)?.[1];
+    if (exponent) return `x10^${exponent}/L`;
+  }
+  return raw.replace(/\s+/g, "");
+}
+
+function inferUnit(text, fieldId) {
   const source = String(text || "");
   if (source.includes("%")) return "%";
-  const unit = source.match(/(?:x|×)?\s*10\s*\^?\s*\d+\s*\/\s*[lL]|g\s*\/\s*[lL]|g\s*\/\s*d[lL]|[uµ]mol\s*\/\s*[lL]/i);
-  return unit ? unit[0].replace(/\s+/g, "") : null;
+  const unit = source.match(/(?:x|×)?\s*10\s*(?:\^|7|\*)?\s*\d{1,2}\s*\/?\s*[lL]|g\s*\/?\s*d[lL]|g\s*\/?\s*[lL]|[uµ]mol\s*\/?\s*[lL]/i);
+  return unit ? normalizeOcrUnit(unit[0], fieldId) : null;
 }
 function candidateFromRow(line) {
   const label = findLabelMatchInLine(line); if (!label) return null;
   const lower = line.toLowerCase();
-  let labelEnd = lower.indexOf(label.variant) + label.variant.length;
+  const labelEnd = lower.indexOf(label.variant) + label.variant.length;
   const tail = line.slice(Math.max(0, labelEnd));
   const numbers = tail.match(NUMBER_RE) || [];
   const value = parseNumberToken(numbers[0]); if (value == null) return null;
-  return { canonicalFieldId: label.fieldId, rawLabel: line.slice(0, labelEnd).trim() || label.variant, value, unit: inferUnit(tail), referenceRange: parseRange(tail), sourceLine: line, extractionMode: "row" };
+  return { canonicalFieldId: label.fieldId, rawLabel: line.slice(0, labelEnd).trim() || label.variant, value, unit: inferUnit(tail, label.fieldId), referenceRange: parseRange(tail), sourceLine: line, extractionMode: "row" };
 }
 export function extractCandidateFields(rawText) {
   const lines = String(rawText || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
@@ -65,42 +87,88 @@ export function extractCandidateFields(rawText) {
       if (!tokens.length) continue;
       if (range && tokens.length === 2 && /^\s*-?\d+(?:[.,]\d+)?\s*(?:-|–|—|to)\s*-?\d+(?:[.,]\d+)?\s*$/i.test(next)) continue;
       const value = parseNumberToken(tokens[0]); if (value == null) continue;
-      candidates.push({ canonicalFieldId: label.fieldId, rawLabel: lines[i], value, unit: inferUnit(next), referenceRange: range, sourceLine: `${lines[i]} | ${next}`, extractionMode: "adjacent-line", ambiguousDuplicate: false });
+      candidates.push({ canonicalFieldId: label.fieldId, rawLabel: lines[i], value, unit: inferUnit(next, label.fieldId), referenceRange: range, sourceLine: `${lines[i]} | ${next}`, extractionMode: "adjacent-line", ambiguousDuplicate: false });
       found.add(label.fieldId); break;
     }
   }
   return candidates;
 }
 
-// Merge independent OCR passes by agreement and extraction evidence only.
-// Deliberately does NOT reward values for falling inside a medical reference range.
+// Merge value and unit consensus independently. A strong value pass must not
+// drag along a malformed unit when the other OCR passes agree on the unit.
 export function mergeCandidatePasses(...passes) {
   const grouped = new Map();
   passes.forEach((pass, passIndex) => {
     for (const candidate of pass || []) {
+      const normalizedUnit = normalizeOcrUnit(candidate.unit, candidate.canonicalFieldId);
       const list = grouped.get(candidate.canonicalFieldId) || [];
-      list.push({ ...candidate, ocrPassIndex: passIndex }); grouped.set(candidate.canonicalFieldId, list);
+      list.push({ ...candidate, unit: normalizedUnit, ocrPassIndex: passIndex });
+      grouped.set(candidate.canonicalFieldId, list);
     }
   });
+
   const selected = [];
   for (const [, candidates] of grouped) {
-    const counts = new Map();
+    const valueCounts = new Map();
+    const unitCounts = new Map();
     for (const c of candidates) {
-      const key = `${c.value}|${c.unit || ""}`;
-      counts.set(key, (counts.get(key) || 0) + 1);
+      const valueKey = String(c.value);
+      valueCounts.set(valueKey, (valueCounts.get(valueKey) || 0) + 1);
+      if (c.unit) unitCounts.set(c.unit, (unitCounts.get(c.unit) || 0) + 1);
     }
-    candidates.sort((a, b) => {
-      const agreementA = counts.get(`${a.value}|${a.unit || ""}`) || 0;
-      const agreementB = counts.get(`${b.value}|${b.unit || ""}`) || 0;
+
+    const valueSorted = [...candidates].sort((a, b) => {
+      const agreementA = valueCounts.get(String(a.value)) || 0;
+      const agreementB = valueCounts.get(String(b.value)) || 0;
       if (agreementA !== agreementB) return agreementB - agreementA;
       return evidenceQuality(b) - evidenceQuality(a);
     });
-    const winner = candidates[0];
-    selected.push({ ...winner, ocrAgreement: counts.get(`${winner.value}|${winner.unit || ""}`) || 1, ocrAlternatives: candidates.map((c) => ({ value: c.value, unit: c.unit, pass: c.ocrPassIndex })) });
+    const winner = valueSorted[0];
+
+    let selectedUnit = winner.unit || null;
+    let unitAgreement = selectedUnit ? (unitCounts.get(selectedUnit) || 1) : 0;
+    for (const [unit, count] of unitCounts.entries()) {
+      if (count > unitAgreement) { selectedUnit = unit; unitAgreement = count; }
+    }
+
+    selected.push({
+      ...winner,
+      unit: selectedUnit,
+      ocrAgreement: valueCounts.get(String(winner.value)) || 1,
+      unitOcrAgreement: unitAgreement,
+      ocrAlternatives: candidates.map((c) => ({ value: c.value, unit: c.unit, pass: c.ocrPassIndex })),
+    });
   }
   return selected;
 }
 function evidenceQuality(candidate) { return (candidate.unit ? 2 : 0) + (candidate.referenceRange ? 1 : 0) + (candidate.extractionMode === "row" ? 1 : 0); }
+
+export function extractInstitution(rawText) {
+  const lines = String(rawText || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const candidates = [];
+  const keywords = /(diagnostic|medical\s+(?:center|centre|clinic)|hospital|laborator(?:y|ies)|health\s+center|clinic\s+corp|medical\s+clinic)/i;
+  const reject = /(lab report|hematology|clinical chemistry|serology|reference range|normal values|performed by|verified by|pathologist|ocr pass)/i;
+
+  lines.forEach((line, index) => {
+    if (!keywords.test(line) || reject.test(line)) return;
+    const cleaned = line
+      .replace(/^[^A-Za-z0-9]+/, "")
+      .replace(/[^A-Za-z0-9&.,'()\- ]+$/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (cleaned.length < 6 || cleaned.length > 120) return;
+    let score = 10;
+    if (index < 18) score += 5;
+    if (/diagnostic/i.test(cleaned)) score += 3;
+    if (/(hospital|medical center|medical clinic|laboratory)/i.test(cleaned)) score += 3;
+    if (cleaned === cleaned.toUpperCase()) score += 2;
+    score += Math.min(cleaned.length / 30, 3);
+    candidates.push({ value: cleaned, score });
+  });
+
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates[0]?.value || null;
+}
 
 const DATE_PATTERNS = [
   { re: /(\d{4})-(\d{2})-(\d{2})/, order: ["y", "m", "d"] },
