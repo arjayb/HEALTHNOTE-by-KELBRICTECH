@@ -1,0 +1,14 @@
+/* HEALTHNOTE acceptance fixes: keep interactive content above fixed bottom navigation. */
+.hn-share-screen,
+.hn-capture-screen {
+  padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+}
+
+.hn-share-preview {
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+}
+
+.hn-share-preview .hn-btn {
+  margin-bottom: 16px;
+}
