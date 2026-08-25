@@ -1,124 +1,207 @@
 /**
- * CBC field extraction and normalization for controlled OCR
- * scope; review flags missing, ambiguous, or suspicious extraction.
- *
- * This module is deliberately pure — it takes raw OCR text and returns
- * structured candidates. It does not call Tesseract itself, so it is
- * fully unit-testable with plain Node, no dependencies, exactly like
- * chronology.js. The OCR call site (CaptureScreen) is a thin wrapper
- * around this.
- *
- * IMPORTANT: no real patient values are hard-coded anywhere in this
- * file. Test fixtures use clearly synthetic numbers.
+ * CBC field extraction and normalization for controlled OCR scope.
+ * Pure and unit-testable: raw OCR text in, structured candidates out.
  */
 
-// Canonical field IDs must match src/data/db.js CANONICAL_FIELDS.
 const LABEL_NORMALIZATION = {
-  wbc: ["wbc", "white blood cell count", "white blood cells", "leukocyte count", "leukocytes"],
-  lymphocytes: ["lymphocytes", "lymphs", "lym"],
-  monocytes: ["monocytes", "mono"],
-  eosinophils: ["eosinophils", "eos"],
-  neutrophils: ["neutrophils", "neut", "segmented neutrophils", "segs"],
-  rbc: ["rbc", "red blood cell count", "red blood cells", "erythrocyte count"],
+  wbc: [
+    "wbc", "wbc count", "white blood cell count", "white blood cells",
+    "white blood cell", "leukocyte count", "leukocytes",
+  ],
+  lymphocytes: ["lymphocytes", "lymphocyte", "lymphs", "lymph", "lym"],
+  monocytes: ["monocytes", "monocyte", "mono"],
+  eosinophils: ["eosinophils", "eosinophil", "eos"],
+  neutrophils: ["neutrophils", "neutrophil", "neut", "segmented neutrophils", "segs"],
+  rbc: [
+    "rbc", "rbc count", "red blood cell count", "red blood cells",
+    "red blood cell", "erythrocyte count", "erythrocytes",
+  ],
   hemoglobin: ["hemoglobin", "haemoglobin", "hgb", "hb"],
   hematocrit: ["hematocrit", "haematocrit", "hct"],
 };
 
-// Build a flat lookup: normalized label text -> canonical field id.
 const LABEL_LOOKUP = new Map();
 for (const [fieldId, variants] of Object.entries(LABEL_NORMALIZATION)) {
-  for (const variant of variants) {
-    LABEL_LOOKUP.set(variant, fieldId);
-  }
+  for (const variant of variants) LABEL_LOOKUP.set(variant, fieldId);
 }
 
 function normalizeLabelText(raw) {
-  return raw.trim().toLowerCase().replace(/[.:]/g, "").replace(/\s+/g, " ");
+  return String(raw || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[|:;,.]/g, " ")
+    .replace(/\s+/g, " ");
 }
 
-/**
- * Attempt to map a raw OCR label to a canonical field id.
- * Returns null if no supported label matches; no other
- * medical measurements during this release").
- */
 export function matchCanonicalField(rawLabel) {
   const norm = normalizeLabelText(rawLabel);
   if (LABEL_LOOKUP.has(norm)) return LABEL_LOOKUP.get(norm);
 
-  // Loose containment match for OCR noise (e.g. trailing punctuation,
-  // extra words like "Absolute Neutrophils").
-  for (const [variant, fieldId] of LABEL_LOOKUP.entries()) {
-    if (norm.includes(variant)) return fieldId;
+  // Prefer the longest alias first so short aliases (hb, eos, etc.) do not
+  // accidentally win inside a longer OCR fragment.
+  const variants = [...LABEL_LOOKUP.entries()].sort((a, b) => b[0].length - a[0].length);
+  for (const [variant, fieldId] of variants) {
+    const escaped = variant.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (new RegExp(`(^|\\s)${escaped}(?=\\s|$)`, "i").test(norm)) return fieldId;
   }
   return null;
 }
 
-// A results line looks roughly like: "Label   12.3   x10^9/L   4.0-10.0"
-// OCR text is noisy, so this is intentionally permissive: label text,
-// then a number (int or decimal), then optional unit/range on the rest
-// of the line.
-const RESULT_LINE_RE = /^([A-Za-z][A-Za-z .%-]{1,40}?)\s+([\d]+\.?[\d]*)\s*([A-Za-z%/^0-9]*)\s*(.*)$/;
+function findLabelMatchInLine(line) {
+  const norm = normalizeLabelText(line);
+  const variants = [...LABEL_LOOKUP.entries()].sort((a, b) => b[0].length - a[0].length);
+  for (const [variant, fieldId] of variants) {
+    const index = norm.indexOf(variant);
+    if (index !== -1) return { fieldId, variant, norm, index };
+  }
+  return null;
+}
+
+const NUMBER_RE = /-?\d+(?:[.,]\d+)?/g;
+
+function parseNumberToken(token) {
+  if (!token) return null;
+  const normalized = token.replace(",", ".");
+  const value = Number.parseFloat(normalized);
+  return Number.isFinite(value) ? value : null;
+}
+
+function parseRange(text) {
+  const m = String(text || "").match(/(-?\d+(?:[.,]\d+)?)\s*(?:-|–|—|to)\s*(-?\d+(?:[.,]\d+)?)/i);
+  if (!m) return null;
+  return { low: parseNumberToken(m[1]), high: parseNumberToken(m[2]) };
+}
+
+function inferUnit(text) {
+  const source = String(text || "");
+  const percent = source.match(/%/);
+  if (percent) return "%";
+  const unit = source.match(/(?:x|×)?\s*10\s*\^?\s*\d+\s*\/\s*[lL]|g\s*\/\s*[lL]|g\s*\/\s*d[lL]|[uµ]mol\s*\/\s*[lL]/i);
+  return unit ? unit[0].replace(/\s+/g, "") : null;
+}
+
+function candidateFromRow(line) {
+  const labelMatch = findLabelMatchInLine(line);
+  if (!labelMatch) return null;
+
+  // Work from the original line so punctuation/decimals are preserved.
+  const lower = line.toLowerCase();
+  let labelEnd = 0;
+  for (const [variant, fieldId] of [...LABEL_LOOKUP.entries()].sort((a, b) => b[0].length - a[0].length)) {
+    if (fieldId !== labelMatch.fieldId) continue;
+    const idx = lower.indexOf(variant);
+    if (idx >= 0) {
+      labelEnd = idx + variant.length;
+      break;
+    }
+  }
+  const tail = line.slice(labelEnd);
+  const numbers = tail.match(NUMBER_RE) || [];
+  if (numbers.length === 0) return null;
+
+  const value = parseNumberToken(numbers[0]);
+  if (value == null) return null;
+
+  return {
+    canonicalFieldId: labelMatch.fieldId,
+    rawLabel: line.slice(0, Math.max(labelEnd, 1)).trim() || labelMatch.variant,
+    value,
+    unit: inferUnit(tail),
+    referenceRange: parseRange(tail),
+    sourceLine: line,
+    extractionMode: "row",
+  };
+}
 
 /**
- * Extract candidate field results from raw OCR text, one attempt per
- * line. Unmatched lines and unsupported labels are simply not
- * returned — they are not errors, just not part of the controlled
- * eight-field scope.
+ * Extract supported CBC fields from OCR text.
+ *
+ * Pass 1 handles ordinary row-oriented OCR. Pass 2 handles common table OCR
+ * where a label is emitted on one line and its numeric result on the next.
+ * It never uses the reference range as the result.
  */
 export function extractCandidateFields(rawText) {
-  const lines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = String(rawText || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
   const candidates = [];
+  const found = new Set();
 
   for (const line of lines) {
-    const match = line.match(RESULT_LINE_RE);
-    if (!match) continue;
-
-    const [, rawLabel, rawValue, rawUnit, rest] = match;
-    const canonicalFieldId = matchCanonicalField(rawLabel);
-    if (!canonicalFieldId) continue;
-
-    const value = parseFloat(rawValue);
-    const referenceRangeMatch = rest.match(/([\d]+\.?[\d]*)\s*-\s*([\d]+\.?[\d]*)/);
-
-    candidates.push({
-      canonicalFieldId,
-      rawLabel: rawLabel.trim(),
-      value,
-      unit: rawUnit || null,
-      referenceRange: referenceRangeMatch
-        ? { low: parseFloat(referenceRangeMatch[1]), high: parseFloat(referenceRangeMatch[2]) }
-        : null,
-      sourceLine: line,
-    });
+    const candidate = candidateFromRow(line);
+    if (!candidate || found.has(candidate.canonicalFieldId)) continue;
+    candidates.push({ ...candidate, ambiguousDuplicate: false });
+    found.add(candidate.canonicalFieldId);
   }
 
-  return dedupeKeepingFirst(candidates);
-}
+  // Recover labels whose OCR value was pushed onto the following line. Stop if
+  // another supported label intervenes so we do not pair one test with another.
+  for (let i = 0; i < lines.length; i += 1) {
+    const label = findLabelMatchInLine(lines[i]);
+    if (!label || found.has(label.fieldId)) continue;
 
-// If OCR produces the same field twice on a page (header repeated,
-// noise), keep the first occurrence and flag it as ambiguous rather
-// than silently picking one.
-function dedupeKeepingFirst(candidates) {
-  const seen = new Map();
-  const result = [];
-  for (const c of candidates) {
-    if (seen.has(c.canonicalFieldId)) {
-      const existing = result.find((r) => r.canonicalFieldId === c.canonicalFieldId);
-      if (existing) existing.ambiguousDuplicate = true;
-      continue;
+    for (let offset = 1; offset <= 2 && i + offset < lines.length; offset += 1) {
+      const next = lines[i + offset];
+      if (findLabelMatchInLine(next)) break;
+      const range = parseRange(next);
+      const tokens = next.match(NUMBER_RE) || [];
+      if (tokens.length === 0) continue;
+
+      // A line that consists only of a range (e.g. 5-10) is not a result line.
+      if (range && tokens.length === 2 && /^\s*-?\d+(?:[.,]\d+)?\s*(?:-|–|—|to)\s*-?\d+(?:[.,]\d+)?\s*$/i.test(next)) {
+        continue;
+      }
+
+      const value = parseNumberToken(tokens[0]);
+      if (value == null) continue;
+      candidates.push({
+        canonicalFieldId: label.fieldId,
+        rawLabel: lines[i],
+        value,
+        unit: inferUnit(next),
+        referenceRange: range,
+        sourceLine: `${lines[i]} | ${next}`,
+        extractionMode: "adjacent-line",
+        ambiguousDuplicate: false,
+      });
+      found.add(label.fieldId);
+      break;
     }
-    seen.set(c.canonicalFieldId, true);
-    result.push({ ...c, ambiguousDuplicate: false });
   }
-  return result;
+
+  return candidates;
 }
 
-// Date extraction: common lab-report date formats. Returns ISO 8601
-// date string or null. Deliberately does not invent a time component
-// A date-only source must not acquire an invented time.
+export function mergeCandidatePasses(...passes) {
+  const byField = new Map();
+  for (const pass of passes) {
+    for (const candidate of pass || []) {
+      const current = byField.get(candidate.canonicalFieldId);
+      if (!current || candidateQuality(candidate) > candidateQuality(current)) {
+        byField.set(candidate.canonicalFieldId, candidate);
+      }
+    }
+  }
+  return [...byField.values()];
+}
+
+function candidateQuality(candidate) {
+  let score = 0;
+  if (candidate.unit) score += 1;
+  if (candidate.referenceRange) score += 1;
+  if (candidate.extractionMode === "row") score += 1;
+  if (candidate.referenceRange) {
+    const { low, high } = candidate.referenceRange;
+    if (candidate.value >= low && candidate.value <= high) score += 2;
+  }
+  return score;
+}
+
 const DATE_PATTERNS = [
   { re: /(\d{4})-(\d{2})-(\d{2})/, order: ["y", "m", "d"] },
-  { re: /(\d{2})\/(\d{2})\/(\d{4})/, order: ["m", "d", "y"] },
+  { re: /(\d{1,2})\/(\d{1,2})\/(\d{4})/, order: ["m", "d", "y"] },
   { re: /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{4})/i, order: ["d", "monthName", "y"] },
 ];
 
@@ -128,7 +211,7 @@ const MONTHS = {
 };
 
 export function extractDates(rawText) {
-  const lines = rawText.split(/\r?\n/);
+  const lines = String(rawText || "").split(/\r?\n/);
   let clinicalDate = null;
   let printDate = null;
 
@@ -144,7 +227,7 @@ export function extractDates(rawText) {
       if (!iso) continue;
       if (isOrderOrClinical && !clinicalDate) clinicalDate = iso;
       else if (isPrint && !printDate) printDate = iso;
-      else if (!clinicalDate) clinicalDate = iso; // fallback: first plausible date found
+      else if (!clinicalDate) clinicalDate = iso;
     }
   }
 
@@ -164,11 +247,6 @@ function toIsoDate(match, order) {
   return `${y}-${m}-${d}`;
 }
 
-/**
- * Review-flag computation: missing date, missing
- * result, ambiguous mapping, result/reference-range confusion,
- * unsupported labels, suspicious decimal shifts.
- */
 export function computeReviewFlags(candidates, dates) {
   const flags = [];
 
@@ -191,9 +269,6 @@ export function computeReviewFlags(candidates, dates) {
       flags.push({ type: "ambiguous_mapping", message: `"${c.rawLabel}" matched more than once.`, canonicalFieldId: c.canonicalFieldId });
     }
     if (c.referenceRange && (c.value === c.referenceRange.low || c.value === c.referenceRange.high)) {
-      // Possible result/reference-range confusion: value exactly equals
-      // a range boundary, which sometimes means OCR grabbed the range
-      // number instead of the result.
       flags.push({
         type: "result_range_confusion",
         message: `${c.rawLabel}: extracted value exactly matches its reference-range boundary — verify OCR didn't grab the range instead of the result.`,
@@ -203,7 +278,7 @@ export function computeReviewFlags(candidates, dates) {
     if (isSuspiciousDecimalShift(c)) {
       flags.push({
         type: "suspicious_decimal_shift",
-        message: `${c.rawLabel}: value ${c.value} looks like it may be off by a factor of 10 (common OCR decimal-point miss).`,
+        message: `${c.rawLabel}: value ${c.value} may contain an OCR decimal-point error. Compare it directly with the source before saving.`,
         canonicalFieldId: c.canonicalFieldId,
       });
     }
@@ -212,15 +287,12 @@ export function computeReviewFlags(candidates, dates) {
   return flags;
 }
 
-// Heuristic only, surfaced to the user for confirmation — never auto-corrected.
 function isSuspiciousDecimalShift(candidate) {
   if (!candidate.referenceRange) return false;
   const { low, high } = candidate.referenceRange;
   const v = candidate.value;
+  if (v >= low && v <= high) return false;
   const shiftedUp = v * 10;
   const shiftedDown = v / 10;
-  const inRangeNow = v >= low && v <= high;
-  const shiftedUpInRange = shiftedUp >= low && shiftedUp <= high;
-  const shiftedDownInRange = shiftedDown >= low && shiftedDown <= high;
-  return !inRangeNow && (shiftedUpInRange || shiftedDownInRange);
+  return (shiftedUp >= low && shiftedUp <= high) || (shiftedDown >= low && shiftedDown <= high);
 }
