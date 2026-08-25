@@ -1,4 +1,4 @@
-/* HEALTHNOTE acceptance fixes: keep interactive content above fixed bottom navigation. */
+/* HEALTHNOTE acceptance fixes. */
 .hn-share-screen,
 .hn-capture-screen {
   padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
@@ -11,4 +11,50 @@
 
 .hn-share-preview .hn-btn {
   margin-bottom: 16px;
+}
+
+/* Prevent the two-column dashboard from exceeding the mobile content width. */
+.hn-dashboard-screen,
+.hn-result-grid,
+.hn-result-card,
+.hn-result-card-top {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.hn-result-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  overflow: hidden;
+}
+
+.hn-result-card {
+  overflow: hidden;
+}
+
+.hn-result-card-top > * {
+  min-width: 0;
+}
+
+.hn-result-card .hn-badge {
+  flex: 0 1 auto;
+  max-width: 74px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Make review edits explicit before persistence changes verification state. */
+.hn-review-row-edited {
+  background: #fff8ea;
+}
+
+.hn-edit-provenance {
+  grid-column: 1 / -1;
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--hn-unverified);
 }
