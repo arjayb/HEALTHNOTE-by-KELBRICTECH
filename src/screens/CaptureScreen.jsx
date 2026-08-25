@@ -29,12 +29,7 @@ export default function CaptureScreen({ onSaved, onBack }) {
   const [candidateFields, setCandidateFields] = useState([]);
   const [dates, setDates] = useState({ clinicalDate: null, printDate: null });
   const [reviewFlags, setReviewFlags] = useState([]);
-  const [manualField, setManualField] = useState({
-    canonicalFieldId: CANONICAL_FIELDS[0].id,
-    value: "",
-    unit: "",
-    clinicalDate: "",
-  });
+  const [manualField, setManualField] = useState({ canonicalFieldId: CANONICAL_FIELDS[0].id, value: "", unit: "", clinicalDate: "" });
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
@@ -69,10 +64,8 @@ export default function CaptureScreen({ onSaved, onBack }) {
     const pdfjsLib = await import("pdfjs-dist");
     const workerSrc = (await import("pdfjs-dist/build/pdf.worker.mjs?url")).default;
     pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
-
     const arrayBuffer = await pdfFile.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
     const pages = [];
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
       const page = await pdf.getPage(pageNumber);
@@ -116,21 +109,22 @@ export default function CaptureScreen({ onSaved, onBack }) {
         langPath: `${localBase}ocr/lang`,
         workerBlobURL: false,
         logger: (m) => {
-          if (m.status === "recognizing text") {
-            setOcrProgress(Math.round(m.progress * 100));
-          }
+          if (m.status === "recognizing text") setOcrProgress(Math.round(m.progress * 100));
         },
       });
 
       const text = data.text || "";
-      setRawOcrText(text);
-      const candidates = extractCandidateFields(text);
+      const candidates = extractCandidateFields(text).map((candidate) => ({
+        ...candidate,
+        originalExtractedValue: candidate.value,
+        originalExtractedUnit: candidate.unit || "",
+        userEdited: false,
+      }));
       const extractedDates = extractDates(text);
-      const flags = computeReviewFlags(candidates, extractedDates);
-
+      setRawOcrText(text);
       setCandidateFields(candidates);
       setDates(extractedDates);
-      setReviewFlags(flags);
+      setReviewFlags(computeReviewFlags(candidates, extractedDates));
       setStep(STEPS.REVIEW);
     } catch (err) {
       setOcrError(err.message || "OCR failed. You can retry or go back.");
@@ -139,9 +133,13 @@ export default function CaptureScreen({ onSaved, onBack }) {
   };
 
   const updateCandidateValue = (canonicalFieldId, key, value) => {
-    setCandidateFields((prev) =>
-      prev.map((c) => (c.canonicalFieldId === canonicalFieldId ? { ...c, [key]: value } : c))
-    );
+    setCandidateFields((prev) => prev.map((c) => {
+      if (c.canonicalFieldId !== canonicalFieldId) return c;
+      const updated = { ...c, [key]: value };
+      const valueChanged = Number(updated.value) !== Number(updated.originalExtractedValue);
+      const unitChanged = String(updated.unit || "").trim() !== String(updated.originalExtractedUnit || "").trim();
+      return { ...updated, userEdited: valueChanged || unitChanged };
+    }));
   };
 
   const handleConfirmSave = async () => {
@@ -170,12 +168,7 @@ export default function CaptureScreen({ onSaved, onBack }) {
       clinicalDate: manualField.clinicalDate || null,
       documentPrintAt: null,
       rawOcrText: "",
-      confirmedFields: [{
-        canonicalFieldId: manualField.canonicalFieldId,
-        rawLabel: canonical?.label || manualField.canonicalFieldId,
-        value: numericValue,
-        unit: manualField.unit.trim(),
-      }],
+      confirmedFields: [{ canonicalFieldId: manualField.canonicalFieldId, rawLabel: canonical?.label || manualField.canonicalFieldId, value: numericValue, unit: manualField.unit.trim(), userEdited: true }],
       sourceRef: null,
       sourceBlob: null,
     });
@@ -184,122 +177,42 @@ export default function CaptureScreen({ onSaved, onBack }) {
 
   return (
     <div className="hn-capture-screen">
-      <header className="hn-screen-header">
-        <button type="button" onClick={onBack} aria-label="Back">←</button>
-        <h2>Capture</h2>
-      </header>
+      <header className="hn-screen-header"><button type="button" onClick={onBack} aria-label="Back">←</button><h2>Capture</h2></header>
 
       {step === STEPS.CHOOSE && (
         <div className="hn-capture-choose">
           <p>Choose how to add a lab report.</p>
-          <button type="button" className="hn-btn hn-btn-primary" onClick={() => cameraInputRef.current?.click()}>
-            <SourceCameraIcon className="hn-btn-icon" />
-            Use Camera
-          </button>
-          <button type="button" className="hn-btn hn-btn-outline" onClick={() => fileInputRef.current?.click()}>
-            <FileIcon className="hn-btn-icon" />
-            Upload Image or PDF
-          </button>
-          <button type="button" className="hn-btn hn-btn-outline" onClick={() => setStep(STEPS.MANUAL)}>
-            Enter Manually
-          </button>
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            hidden
-            onChange={(e) => e.target.files[0] && handleFileChosen(e.target.files[0], "camera")}
-          />
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,application/pdf"
-            hidden
-            onChange={(e) => e.target.files[0] && handleFileChosen(e.target.files[0], "upload")}
-          />
+          <button type="button" className="hn-btn hn-btn-primary" onClick={() => cameraInputRef.current?.click()}><SourceCameraIcon className="hn-btn-icon" />Use Camera</button>
+          <button type="button" className="hn-btn hn-btn-outline" onClick={() => fileInputRef.current?.click()}><FileIcon className="hn-btn-icon" />Upload Image or PDF</button>
+          <button type="button" className="hn-btn hn-btn-outline" onClick={() => setStep(STEPS.MANUAL)}>Enter Manually</button>
+          <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => e.target.files[0] && handleFileChosen(e.target.files[0], "camera")} />
+          <input ref={fileInputRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => e.target.files[0] && handleFileChosen(e.target.files[0], "upload")} />
         </div>
       )}
 
       {step === STEPS.MANUAL && (
         <div className="hn-manual-entry" data-testid="manual-entry-form">
           <p>Manual entries remain permanently marked UNVERIFIED unless an original source is attached in a separate record.</p>
-          <label>
-            Health field
-            <select
-              value={manualField.canonicalFieldId}
-              onChange={(e) => setManualField((current) => ({ ...current, canonicalFieldId: e.target.value }))}
-            >
-              {CANONICAL_FIELDS.map((field) => <option key={field.id} value={field.id}>{field.label}</option>)}
-            </select>
-          </label>
-          <label>
-            Value
-            <input type="number" step="any" value={manualField.value} onChange={(e) => setManualField((current) => ({ ...current, value: e.target.value }))} />
-          </label>
-          <label>
-            Unit
-            <input type="text" value={manualField.unit} onChange={(e) => setManualField((current) => ({ ...current, unit: e.target.value }))} />
-          </label>
-          <label>
-            Clinical date (optional)
-            <input type="date" value={manualField.clinicalDate} onChange={(e) => setManualField((current) => ({ ...current, clinicalDate: e.target.value }))} />
-          </label>
+          <label>Health field<select value={manualField.canonicalFieldId} onChange={(e) => setManualField((current) => ({ ...current, canonicalFieldId: e.target.value }))}>{CANONICAL_FIELDS.map((field) => <option key={field.id} value={field.id}>{field.label}</option>)}</select></label>
+          <label>Value<input type="number" step="any" value={manualField.value} onChange={(e) => setManualField((current) => ({ ...current, value: e.target.value }))} /></label>
+          <label>Unit<input type="text" value={manualField.unit} onChange={(e) => setManualField((current) => ({ ...current, unit: e.target.value }))} /></label>
+          <label>Clinical date (optional)<input type="date" value={manualField.clinicalDate} onChange={(e) => setManualField((current) => ({ ...current, clinicalDate: e.target.value }))} /></label>
           <button type="button" className="hn-btn hn-btn-primary" disabled={!manualField.value} onClick={handleManualSave}>Save UNVERIFIED Entry</button>
           <button type="button" className="hn-link-button" onClick={resetToChoose}>Cancel</button>
         </div>
       )}
 
       {step === STEPS.PDF_PAGE_SELECT && (
-        <div className="hn-pdf-page-select">
-          <p>Select the page containing the CBC results.</p>
-          {pdfPages.length === 0 && <p className="hn-empty-state">Rendering page thumbnails…</p>}
-          <div className="hn-pdf-page-grid">
-            {pdfPages.map((p) => (
-              <button key={p.pageNumber} type="button" onClick={() => handlePageSelected(p.pageNumber)}>
-                <img src={p.thumbnailDataUrl} alt={`Page ${p.pageNumber}`} />
-                <span>Page {p.pageNumber}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <div className="hn-pdf-page-select"><p>Select the page containing the CBC results.</p>{pdfPages.length === 0 && <p className="hn-empty-state">Rendering page thumbnails…</p>}<div className="hn-pdf-page-grid">{pdfPages.map((p) => <button key={p.pageNumber} type="button" onClick={() => handlePageSelected(p.pageNumber)}><img src={p.thumbnailDataUrl} alt={`Page ${p.pageNumber}`} /><span>Page {p.pageNumber}</span></button>)}</div></div>
       )}
 
       {step === STEPS.PREVIEW && (
-        <div className="hn-capture-preview">
-          <img src={previewUrl} alt="Selected source preview" className="hn-preview-image" />
-          {ocrError && <p className="hn-error-text">{ocrError}</p>}
-          <button type="button" className="hn-btn hn-btn-primary" onClick={runOcr}>
-            {ocrError ? "Retry OCR" : "Run OCR"}
-          </button>
-          <button type="button" className="hn-link-button" onClick={resetToChoose}>
-            Choose a different source
-          </button>
-        </div>
+        <div className="hn-capture-preview"><img src={previewUrl} alt="Selected source preview" className="hn-preview-image" />{ocrError && <p className="hn-error-text">{ocrError}</p>}<button type="button" className="hn-btn hn-btn-primary" onClick={runOcr}>{ocrError ? "Retry OCR" : "Run OCR"}</button><button type="button" className="hn-link-button" onClick={resetToChoose}>Choose a different source</button></div>
       )}
 
-      {step === STEPS.OCR_RUNNING && (
-        <div className="hn-capture-ocr-progress">
-          <p>Reading document locally… {ocrProgress}%</p>
-          <div className="hn-progress-bar">
-            <div className="hn-progress-bar-fill" style={{ width: `${ocrProgress}%` }} />
-          </div>
-        </div>
-      )}
+      {step === STEPS.OCR_RUNNING && <div className="hn-capture-ocr-progress"><p>Reading document locally… {ocrProgress}%</p><div className="hn-progress-bar"><div className="hn-progress-bar-fill" style={{ width: `${ocrProgress}%` }} /></div></div>}
 
-      {step === STEPS.REVIEW && (
-        <ReviewTable
-          candidateFields={candidateFields}
-          dates={dates}
-          reviewFlags={reviewFlags}
-          rawOcrText={rawOcrText}
-          captureOrigin={captureOrigin}
-          onUpdateDate={(value) => setDates((current) => ({ ...current, clinicalDate: value || null }))}
-          onUpdateField={updateCandidateValue}
-          onConfirm={handleConfirmSave}
-        />
-      )}
-
+      {step === STEPS.REVIEW && <ReviewTable candidateFields={candidateFields} dates={dates} reviewFlags={reviewFlags} rawOcrText={rawOcrText} captureOrigin={captureOrigin} onUpdateDate={(value) => setDates((current) => ({ ...current, clinicalDate: value || null }))} onUpdateField={updateCandidateValue} onConfirm={handleConfirmSave} />}
       {step === STEPS.SAVING && <p>Saving…</p>}
     </div>
   );
@@ -308,74 +221,28 @@ export default function CaptureScreen({ onSaved, onBack }) {
 function ReviewTable({ candidateFields, dates, reviewFlags, rawOcrText, captureOrigin, onUpdateDate, onUpdateField, onConfirm }) {
   return (
     <div className="hn-review-table">
-      <label className="hn-review-date">
-        Clinical date (optional)
-        <input type="date" value={dates.clinicalDate || ""} onChange={(e) => onUpdateDate(e.target.value)} />
-      </label>
-      {!dates.clinicalDate && captureOrigin === "camera" && (
-        <p className="hn-explainer">No document date detected. The device capture time will be stored as the system-generated observation time.</p>
-      )}
-      {!dates.clinicalDate && captureOrigin === "upload" && (
-        <p className="hn-explainer">No document date detected. This upload will remain undated; upload time is provenance only.</p>
-      )}
+      <label className="hn-review-date">Clinical date (optional)<input type="date" value={dates.clinicalDate || ""} onChange={(e) => onUpdateDate(e.target.value)} /></label>
+      {!dates.clinicalDate && captureOrigin === "camera" && <p className="hn-explainer">No document date detected. The device capture time will be stored as the system-generated observation time.</p>}
+      {!dates.clinicalDate && captureOrigin === "upload" && <p className="hn-explainer">No document date detected. This upload will remain undated; upload time is provenance only.</p>}
 
-      {reviewFlags.length > 0 && (
-        <ul className="hn-review-flags">
-          {reviewFlags.map((f, i) => (
-            <li key={i} className={`hn-flag hn-flag-${f.type}`}>
-              {f.message}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {candidateFields.length === 0 && (
-        <p className="hn-empty-state">
-          OCR could not find any of the eight supported fields on this page. You can retry with
-          a clearer photo or a different page.
-        </p>
-      )}
+      {reviewFlags.length > 0 && <ul className="hn-review-flags">{reviewFlags.map((f, i) => <li key={i} className={`hn-flag hn-flag-${f.type}`}>{f.message}</li>)}</ul>}
+      {candidateFields.length === 0 && <p className="hn-empty-state">OCR could not find any of the eight supported fields on this page. You can retry with a clearer photo or a different page.</p>}
 
       {candidateFields.map((c) => {
         const canonical = CANONICAL_FIELDS.find((f) => f.id === c.canonicalFieldId);
         return (
-          <div key={c.canonicalFieldId} className="hn-review-row">
+          <div key={c.canonicalFieldId} className={`hn-review-row ${c.userEdited ? "hn-review-row-edited" : ""}`}>
             <label>{canonical?.shortLabel || c.rawLabel}</label>
-            <input
-              type="number"
-              step="any"
-              value={c.value}
-              onChange={(e) => onUpdateField(c.canonicalFieldId, "value", parseFloat(e.target.value))}
-            />
-            <input
-              type="text"
-              value={c.unit || ""}
-              onChange={(e) => onUpdateField(c.canonicalFieldId, "unit", e.target.value)}
-              placeholder="unit"
-            />
-            {c.referenceRange && (
-              <span className="hn-review-range">
-                Ref: {c.referenceRange.low}–{c.referenceRange.high}
-              </span>
-            )}
+            <input type="number" step="any" value={c.value} onChange={(e) => onUpdateField(c.canonicalFieldId, "value", parseFloat(e.target.value))} />
+            <input type="text" value={c.unit || ""} onChange={(e) => onUpdateField(c.canonicalFieldId, "unit", e.target.value)} placeholder="unit" />
+            {c.referenceRange && <span className="hn-review-range">Ref: {c.referenceRange.low}–{c.referenceRange.high}</span>}
+            {c.userEdited && <span className="hn-edit-provenance">Edited from OCR {c.originalExtractedValue}{c.originalExtractedUnit ? ` ${c.originalExtractedUnit}` : ""} · saves UNVERIFIED</span>}
           </div>
         );
       })}
 
-      <details className="hn-raw-ocr-text">
-        <summary>Raw OCR text</summary>
-        <pre>{rawOcrText}</pre>
-      </details>
-
-      <button
-        type="button"
-        className="hn-btn hn-btn-primary"
-        disabled={candidateFields.length === 0}
-        onClick={onConfirm}
-        data-testid="confirm-save"
-      >
-        Confirm and Save
-      </button>
+      <details className="hn-raw-ocr-text"><summary>Raw OCR text</summary><pre>{rawOcrText}</pre></details>
+      <button type="button" className="hn-btn hn-btn-primary" disabled={candidateFields.length === 0} onClick={onConfirm} data-testid="confirm-save">Confirm and Save</button>
     </div>
   );
 }
